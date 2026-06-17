@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAppointments } from '../api/appointmentsApi';
-import { Appointment } from '../types/appointment';
+import type { Appointment } from '../types/appointment';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 

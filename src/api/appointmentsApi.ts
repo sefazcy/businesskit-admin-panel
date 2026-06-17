@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { Appointment } from '../types/appointment';
+import type { Appointment } from '../types/appointment';
 
 export interface AppointmentFilters {
   status?: string;
