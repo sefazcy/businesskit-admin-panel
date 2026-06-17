@@ -21,11 +21,11 @@ export default function DashboardPage() {
         </div>
         <div className="card">
           <div className="card-title">Staff</div>
-          <div className="card-body card-soon">Coming soon</div>
+          <div className="card-body card-active">Module active</div>
         </div>
         <div className="card">
           <div className="card-title">Services</div>
-          <div className="card-body card-soon">Coming soon</div>
+          <div className="card-body card-active">Module active</div>
         </div>
         <div className="card">
           <div className="card-title">Blog</div>

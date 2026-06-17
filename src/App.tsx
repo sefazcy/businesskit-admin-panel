@@ -5,6 +5,8 @@ import AdminLayout from './components/layout/AdminLayout';
 import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AppointmentsPage from './pages/AppointmentsPage';
+import StaffPage from './pages/StaffPage';
+import ServicesPage from './pages/ServicesPage';
 
 export default function App() {
   return (
@@ -23,6 +25,8 @@ export default function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
+            <Route path="staff" element={<StaffPage />} />
+            <Route path="services" element={<ServicesPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
