@@ -14,6 +14,11 @@ export const getAppointments = (filters?: AppointmentFilters) =>
 export const getAppointmentStats = () =>
   apiClient.get<AppointmentStats>('/api/admin/appointments/stats');
 
+export const getUpcomingAppointments = (days?: number) =>
+  apiClient.get<Appointment[]>('/api/admin/appointments/upcoming', {
+    params: days !== undefined ? { days } : undefined,
+  });
+
 export const updateAppointmentStatus = (id: number, data: UpdateStatusRequest) =>
   apiClient.patch<Appointment>(`/api/admin/appointments/${id}/status`, data);
 

@@ -709,10 +709,85 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - **No 401 auto-logout** — no axios response interceptor exists; an expired token causes API error banners on individual pages rather than a redirect to `/login`
 - **Token presence, not validity** — `isAuthenticated` is `!!token`; a stored but expired token will appear as authenticated until an API call fails
 - **No role-based frontend enforcement** — any account with valid credentials can access the admin panel; admin role is stored but not checked client-side
-- **Dashboard "Backend: Connected" is static** — the card does not perform a real health check against the backend
-- **Dashboard stats are static** — module cards show "Module active" text, not real counts
+- **Dashboard uses multiple parallel requests** — 9 calls run in parallel at load; a dedicated backend aggregate endpoint can be added later for efficiency
 - **No pagination** — all list endpoints return all records in a single request; performance degrades with high data volume
 - **No search** — no full-text or field-level search in any module
 - **No delete actions** — modules without backend delete endpoints (Blog, Gallery, Messages) cannot remove records; deactivate/archive is the only available action
 - **Admin panel is desktop-first** — sidebar is a fixed 220 px column with no mobile collapse; not designed for small viewports
 - **No automated tests** — manual smoke tests (this document) are the sole release gate
+
+---
+
+## v3.1 — Real Dashboard Stats
+
+### Dashboard load
+
+- [ ] Navigate to `/dashboard` — a brief "Loading dashboard…" message is shown while data fetches
+- [ ] After load, all stat cards render with real numbers (not "Module active" text)
+- [ ] Page does not crash or show a blank screen even if one endpoint is slow or fails
+
+### Backend status card
+
+- [ ] **Backend: Connected** — card shows "Connected" in green when `GET /api/health` returns 200
+- [ ] **Backend: Offline** — with backend stopped, card shows "Offline" in red
+- [ ] Backend card is not clickable (no link wrapper)
+
+### Appointment stats
+
+- [ ] **Today's Appointments** card count matches the "Today" count shown in the AppointmentsPage stats row
+- [ ] **Pending** card count matches the "Pending" count shown in the AppointmentsPage stats row; displayed in amber when > 0
+- [ ] **Upcoming 7 Days** card count matches the AppointmentsPage "Next 7 Days" stat
+
+### Unread messages
+
+- [ ] **Unread Messages** card count matches the number of rows when "Unread only" filter is active on the Messages page
+- [ ] Count shows in amber when > 0; neutral when 0
+
+### Module stats
+
+- [ ] **Active Staff** count matches the number of staff members with Active badge on the Staff page
+- [ ] **Active Services** count matches the number of services with Active badge on the Services page
+- [ ] **Published Posts** count matches the number of posts shown when the Blog "Published" filter is active
+- [ ] **Gallery Items** count matches the number of items shown when the Gallery "Active" filter is active
+
+### Settings card
+
+- [ ] If settings have been saved at least once, **Settings** card shows "Configured" in green
+- [ ] If settings have never been saved (404 from backend), **Settings** card shows "Not configured" in amber
+- [ ] If settings endpoint fails for another reason, **Settings** card shows "—"
+
+### Clickable cards
+
+- [ ] Clicking **Today's Appointments** navigates to `/appointments`
+- [ ] Clicking **Pending** navigates to `/appointments`
+- [ ] Clicking **Upcoming 7 Days** navigates to `/appointments`
+- [ ] Clicking **Unread Messages** navigates to `/messages`
+- [ ] Clicking **Active Staff** navigates to `/staff`
+- [ ] Clicking **Active Services** navigates to `/services`
+- [ ] Clicking **Published Posts** navigates to `/blog`
+- [ ] Clicking **Gallery Items** navigates to `/gallery`
+- [ ] Clicking **Settings** navigates to `/settings`
+- [ ] Card hover shows an indigo border highlight
+
+### Upcoming appointments section
+
+- [ ] "Upcoming Appointments" section heading is visible below the stat cards
+- [ ] If there are upcoming appointments, a table shows up to 5 rows with columns: Date, Time, Customer, Service, Status
+- [ ] Status column shows the correct colour-coded badge (Pending, Confirmed, etc.)
+- [ ] If no upcoming appointments exist, "No upcoming appointments." message is shown
+- [ ] "View all" link navigates to `/appointments`
+
+### Partial failure tolerance
+
+- [ ] Stop the backend after the page has loaded — reload the dashboard; all stat cards show "—" except Backend which shows "Offline"
+- [ ] Simulate a single endpoint failure (e.g., return an error for `/api/admin/blog`); all other cards still show real data; the failed card shows "—"
+- [ ] Page does not throw a JavaScript error or display a blank screen on partial failure
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Known limitations
+
+- **Today's appointments** count is UTC-based (computed by the backend using `DateTime.UtcNow`). In non-UTC timezones, the count may differ from the local business-day expectation.
+- **Dashboard makes 9 parallel requests** instead of one aggregate endpoint. Performance is fine on localhost; a dedicated `GET /api/admin/dashboard/stats` endpoint can be added in a future backend sprint to reduce request count.

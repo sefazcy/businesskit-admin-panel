@@ -238,7 +238,7 @@ a.nav-link:hover {
 
 .dashboard-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(185px, 185px));
   gap: 1rem;
   margin-top: 1.25rem;
 }
@@ -606,4 +606,72 @@ a.nav-link:hover {
 .status-select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ─── Dashboard stat cards ───────────────────────────────────────── */
+
+.card-stat {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+  margin-top: 0.125rem;
+}
+
+.card-stat.stat-pending  { color: #92400e; }
+.card-stat.stat-offline  { color: #991b1b; }
+.card-stat.stat-muted    { color: #94a3b8; }
+
+.card-status {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.2;
+  margin-top: 0.125rem;
+  word-break: break-word;
+}
+
+.card-status.stat-pending { color: #92400e; }
+.card-status.stat-offline { color: #991b1b; }
+.card-status.stat-muted   { color: #94a3b8; }
+
+.dashboard-cards .card {
+  min-height: 96px;
+  height: 100%;
+}
+
+.dashboard-cards .card-title {
+  line-height: 1.25;
+  min-height: 2rem;
+}
+
+.card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  height: 100%;
+}
+
+.card-link:hover .card {
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  border-color: #c7d2fe;
+}
+
+/* ─── Dashboard sections ─────────────────────────────────────────── */
+
+.dashboard-section {
+  margin-top: 2rem;
+}
+
+.dashboard-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-section-header h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
 }
