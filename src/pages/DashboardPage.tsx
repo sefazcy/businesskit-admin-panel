@@ -39,6 +39,10 @@ export default function DashboardPage() {
           <div className="card-title">Messages</div>
           <div className="card-body card-active">Module active</div>
         </div>
+        <div className="card">
+          <div className="card-title">Settings</div>
+          <div className="card-body card-active">Module active</div>
+        </div>
       </div>
     </div>
   );

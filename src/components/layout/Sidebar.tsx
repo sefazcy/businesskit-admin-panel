@@ -15,7 +15,7 @@ export default function Sidebar() {
         <NavLink to="/blog" className={activeClass}>Blog</NavLink>
         <NavLink to="/gallery" className={activeClass}>Gallery</NavLink>
         <NavLink to="/messages" className={activeClass}>Messages</NavLink>
-        <span className="nav-link disabled">Settings</span>
+        <NavLink to="/settings" className={activeClass}>Settings</NavLink>
       </nav>
     </aside>
   );

@@ -460,3 +460,78 @@ These require deliberate input or DevTools verification.
 - [ ] No pagination — all messages load in a single request; performance degrades with high volume
 - [ ] No search — cannot filter by sender name, email, or message content
 - [ ] `mark-replied` is one-way — once a message is marked as replied it cannot be un-replied
+
+---
+
+## v2.8 — Business Settings Admin Page
+
+### Page load
+
+- [ ] Navigate to `/settings` — page loads (loading spinner shown briefly)
+- [ ] Settings link in sidebar is active and highlighted
+- [ ] Dashboard shows a **Settings** card with "Module active"
+- [ ] If settings have never been saved: all fields are empty, Currency defaults to "USD", subtitle reads "Settings not yet configured. Fill in and save to create." — **no error is shown**
+- [ ] If settings exist: all 14 fields are pre-filled from the current values
+- [ ] Subtitle shows "Last saved: {human-readable datetime}" when settings exist
+
+### Form sections and fields
+
+- [ ] **Business Info** section is visible with: Business Name, Phone, Email, Currency, Address (textarea), Working Hours (textarea)
+- [ ] **Online Presence** section is visible with: Website, Logo URL
+- [ ] **Social Links** section is visible with: Instagram, LinkedIn, Facebook, Twitter, WhatsApp
+- [ ] **Appearance** section is visible with: Theme Color
+- [ ] All 14 writable fields are visible on the page
+- [ ] No tabs, no toggles — single scrollable form
+
+### Save — first time (creates settings record)
+
+- [ ] Fill in Business Name and leave everything else blank, click "Save Settings"
+- [ ] PUT request is sent to `/api/admin/business-settings`
+- [ ] Green success banner "Settings saved successfully." appears
+- [ ] Subtitle changes to "Last saved: {datetime}"
+- [ ] Navigate away and back — Business Name value persists (stored on backend)
+
+### Save — update existing settings
+
+- [ ] Change Business Name and Phone, click "Save Settings" — success banner appears, values persist after page refresh
+- [ ] Blank out an optional field (e.g. Phone), save — field is cleared on backend (next page load shows it empty)
+
+### Required field validation
+
+- [ ] Clear Business Name entirely, click Save — error shown, no API call made
+- [ ] Clear Currency entirely, click Save — error shown, no API call made
+- [ ] Both validations fire client-side before the PUT request
+
+### Null / empty string handling (DevTools Network tab)
+
+- [ ] Clear Phone, submit — PUT body contains `"phone": null` (not `"phone": ""`)
+- [ ] Clear Email, submit — PUT body contains `"email": null`
+- [ ] Clear all Social Links, submit — all five social fields send as `null`
+- [ ] Clear Logo URL, submit — `"logoUrl": null`
+- [ ] Clear Working Hours, submit — `"workingHours": null`
+- [ ] Clear Theme Color, submit — `"themeColor": null`
+- [ ] PUT body always contains all 14 writable fields (no field is ever omitted)
+
+### Email validation
+
+- [ ] Enter an invalid email (e.g. `notanemail`), click Save — backend returns 400; error banner appears, success banner does not show
+- [ ] Clear email (blank), click Save — no email validation error (sends `null`, which is valid)
+
+### Success / error banner behavior
+
+- [ ] After a successful save, green success banner is visible
+- [ ] Editing any field after a successful save causes the green success banner to disappear
+- [ ] If save fails (e.g. invalid email), red error banner is shown; green success banner is not shown
+- [ ] Error banner disappears on next successful save
+
+### Auth
+
+- [ ] Log out, navigate to `/settings` — redirected to `/login`
+- [ ] Note: the GET `/api/business-settings` used to load the form is a public endpoint — settings values are readable without auth. Only the PUT requires auth.
+
+### Known Settings Limitations
+
+- [ ] No partial update — every save replaces all 14 fields; any field not present in the UI would be nulled (currently all 14 are present)
+- [ ] No logo upload UI — logo must be entered as a URL string manually
+- [ ] No theme color picker — hex/color value must be typed manually
+- [ ] Working Hours is free text with no format enforcement

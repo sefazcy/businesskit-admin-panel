@@ -10,6 +10,7 @@ import ServicesPage from './pages/ServicesPage';
 import BlogPage from './pages/BlogPage';
 import GalleryPage from './pages/GalleryPage';
 import MessagesPage from './pages/MessagesPage';
+import SettingsPage from './pages/SettingsPage';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
             <Route path="blog" element={<BlogPage />} />
             <Route path="gallery" element={<GalleryPage />} />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
