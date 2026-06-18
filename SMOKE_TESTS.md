@@ -215,3 +215,73 @@ These require deliberate input or DevTools verification.
 ## Known Backend Limitations
 
 - **Appointment time conflict not checked on update**: `PUT /api/admin/appointments/{id}` does not re-run the availability/working-hours conflict check that `POST` enforces. An admin can move an appointment to a conflicting time slot without a 400 error. This is known backend behavior to be addressed in a future backend sprint.
+
+---
+
+## v2.5 — Blog Admin Page
+
+### List
+
+- [ ] Navigate to `/blog` — page loads with blog post table (or empty-state message if no posts exist)
+- [ ] "Add Post" button is visible when the form panel is not open
+- [ ] Language filter text input — typing "en" updates the list to show only English posts
+- [ ] Status filter select — selecting "Published" shows only published posts
+- [ ] Status filter select — selecting "Draft" shows only draft posts
+- [ ] Status filter select — selecting "All" shows all posts
+- [ ] Category filter text input — typing a category name filters the list
+- [ ] "Clear filters" button appears when any filter is active
+- [ ] "Clear filters" resets all three filters and reloads the full list
+- [ ] Published posts show a green "Published" badge; drafts show an amber "Draft" badge
+- [ ] Published At column shows the date portion (YYYY-MM-DD) or "—" for drafts
+- [ ] Blog link in sidebar is active and navigates to `/blog`
+
+### Create
+
+- [ ] "Add Post" opens the inline form panel with all 11 fields empty/default
+- [ ] Language field defaults to "en"
+- [ ] Is Published checkbox is visible on the create form (unchecked by default)
+- [ ] Typing in Title auto-generates the Slug field (e.g. "Hello World" → "hello-world")
+- [ ] Manually editing the Slug field stops auto-generation for that session
+- [ ] Slug resets to auto-generation when a new "Add Post" form is opened
+- [ ] Create with Is Published unchecked — new row appears at top of table with Draft badge
+- [ ] Create with Is Published checked — new row appears with Published badge and publishedAt set automatically
+- [ ] Create with same slug + language as an existing post — 409 error shown in form, panel stays open
+- [ ] Cancel button closes the form without creating anything
+- [ ] Content field is required — form does not submit when it is empty
+
+### Edit
+
+- [ ] Click "Edit" on any row — form panel opens with all 11 fields pre-populated
+- [ ] Title, Slug, Language, Category, Cover Image URL, SEO Title all pre-fill correctly
+- [ ] Is Published checkbox pre-fills to the correct state (checked for published, unchecked for draft)
+- [ ] Published At pre-fills correctly for a published post (datetime-local shows correct date + time)
+- [ ] Published At pre-fills as empty for a draft post
+- [ ] Summary, Content, Meta Description textareas pre-fill correctly (empty when null)
+- [ ] Cancel closes the panel without saving
+- [ ] Changing Title on edit does NOT re-derive Slug (slug is locked in edit mode)
+- [ ] Save changes — row updates in table without page reload
+- [ ] Editing a published post without touching Published At — Published At is preserved (not cleared)
+- [ ] Changing language on edit + save — language updates in the row
+
+### Publish / Unpublish toggle
+
+- [ ] "Unpublish" button on a Published row — badge changes to Draft without page reload
+- [ ] "Publish" button on a Draft row — badge changes to Published; publishedAt is auto-set by backend if it was null
+- [ ] Toggling back and forth works repeatedly
+
+### DevTools checks (Network tab)
+
+- [ ] POST body for create contains all 11 fields: `title`, `slug`, `summary`, `content`, `coverImageUrl`, `seoTitle`, `metaDescription`, `category`, `language`, `isPublished`, `publishedAt`
+- [ ] PUT body for update contains the same 11 fields
+- [ ] `language` sends as lowercase string (e.g. `"en"` not `"EN"`)
+- [ ] `isPublished` sends as JSON boolean (`true`/`false`), not a string
+- [ ] `publishedAt` sends as `null` when the field is empty; as an ISO string when set
+- [ ] `summary`, `coverImageUrl`, `seoTitle`, `metaDescription`, `category` send as `null` when cleared (not `""`)
+- [ ] PATCH `/publish` sends no request body
+- [ ] PATCH `/unpublish` sends no request body
+
+### Known Blog Limitations
+
+- [ ] No delete endpoint exists — posts cannot be deleted from the admin panel
+- [ ] Language field accepts any string up to 10 chars with no enum validation — always use lowercase (e.g. `en`, `tr`)
+- [ ] Unpublishing a post does NOT clear `publishedAt` — this is intentional backend behavior

@@ -12,7 +12,7 @@ export default function Sidebar() {
         <NavLink to="/appointments" className={activeClass}>Appointments</NavLink>
         <NavLink to="/staff" className={activeClass}>Staff</NavLink>
         <NavLink to="/services" className={activeClass}>Services</NavLink>
-        <span className="nav-link disabled">Blog</span>
+        <NavLink to="/blog" className={activeClass}>Blog</NavLink>
         <span className="nav-link disabled">Gallery</span>
         <span className="nav-link disabled">Settings</span>
       </nav>
