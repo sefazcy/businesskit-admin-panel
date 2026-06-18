@@ -10,6 +10,7 @@ export default function Sidebar() {
       <nav className="sidebar-nav">
         <NavLink to="/dashboard" className={activeClass}>Dashboard</NavLink>
         <NavLink to="/appointments" className={activeClass}>Appointments</NavLink>
+        <NavLink to="/customers" className={activeClass}>Customers</NavLink>
         <NavLink to="/staff" className={activeClass}>Staff</NavLink>
         <NavLink to="/working-hours" className={activeClass}>Working Hours</NavLink>
         <NavLink to="/services" className={activeClass}>Services</NavLink>

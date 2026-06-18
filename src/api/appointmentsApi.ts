@@ -6,6 +6,11 @@ export interface AppointmentFilters {
   staffMemberId?: number;
   businessServiceId?: number;
   date?: string;
+  startDate?: string;
+  endDate?: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
 export const getAppointments = (filters?: AppointmentFilters) =>

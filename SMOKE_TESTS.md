@@ -867,3 +867,80 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - **No holiday / time-off exceptions** — only recurring weekly rules are supported
 - **No availability slot preview in v3.2** — planned for a future sprint
 - **Changing working hours does not automatically cancel existing booked appointments** — admin must review and manage affected appointments manually
+
+---
+
+## v3.3 — Customer Lookup Page
+
+### Navigation
+
+- [ ] Sidebar shows "Customers" link between Appointments and Staff
+- [ ] Navigating to `/customers` loads the page without error
+- [ ] "Customers" link has active highlight when on `/customers`
+
+### Initial load (no auto-fetch)
+
+- [ ] Page loads without triggering any request to `/api/admin/appointments`
+- [ ] No table or results are shown on initial load
+- [ ] No create/edit/delete customer buttons exist anywhere on the page
+
+### Validation
+
+- [ ] Click Search with all three fields empty — shows "Enter at least one search field." and makes no API call
+
+### Search by individual fields
+
+- [ ] Enter a customer name, click Search — calls `GET /api/admin/appointments?customerName=...`
+- [ ] Enter a customer email, click Search — calls `GET /api/admin/appointments?customerEmail=...`
+- [ ] Enter a customer phone, click Search — calls `GET /api/admin/appointments?customerPhone=...`
+
+### Combined filters
+
+- [ ] Fill name + email, click Search — both params sent in a single request
+- [ ] Fill all three fields, click Search — all three params sent in a single request
+
+### Results table
+
+- [ ] Matching appointment rows render with columns: Date, Time, Customer, Email, Phone, Service, Staff, Status, Actions
+- [ ] Date is formatted as YYYY-MM-DD (no time component)
+- [ ] Status badges render with correct class (`status-pending`, `status-confirmed`, `status-cancelled`, `status-completed`)
+- [ ] Null email shows `—`; null staff/service shows `—`
+
+### Empty state
+
+- [ ] Search with no matching results — shows "No appointments found for this customer search."
+
+### Actions column
+
+- [ ] Each row has a "View Appointments" link that navigates to `/appointments`
+- [ ] No edit/delete/archive button exists in the Actions column
+
+### Clear
+
+- [ ] Click Clear — all three input fields are emptied
+- [ ] Click Clear — results table is removed
+- [ ] Click Clear — validation/error messages are cleared
+- [ ] Click Clear — `hasSearched` resets so empty state is not shown
+
+### Error handling
+
+- [ ] Stop the backend, click Search — error from `extractError` is shown; no crash
+
+### No fake grouping
+
+- [ ] Results are raw appointment records, not grouped by customer email or phone
+- [ ] No derived customer IDs or customer profiles are shown
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+- [ ] `git status --short` shows exactly: `M SMOKE_TESTS.md`, `M src/App.tsx`, `M src/api/appointmentsApi.ts`, `M src/components/layout/Sidebar.tsx`, `?? src/pages/CustomersPage.tsx`
+
+### Known limitations
+
+- This is Customer Lookup, not a full Customer CRM module
+- No Customer entity exists in the backend yet
+- Results are appointment records, not customer profiles
+- No customer notes, archive, or delete
+- No pagination
+- Full Customer module requires a backend Customer entity in a later sprint
