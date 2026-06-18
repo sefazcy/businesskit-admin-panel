@@ -451,6 +451,7 @@ a.nav-link:hover {
 }
 
 .form-grid input,
+.form-grid select,
 .form-grid textarea {
   padding: 0.45rem 0.7rem;
   border: 1px solid #cbd5e1;
@@ -462,10 +463,19 @@ a.nav-link:hover {
   transition: border-color 0.13s;
 }
 
+.form-grid select {
+  cursor: pointer;
+}
+
 .form-grid input:focus,
+.form-grid select:focus,
 .form-grid textarea:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+.form-grid textarea {
+  resize: vertical;
 }
 
 .form-check {

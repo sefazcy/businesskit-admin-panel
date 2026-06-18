@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import type { Appointment, AppointmentStats, UpdateStatusRequest } from '../types/appointment';
+import type { Appointment, AppointmentStats, UpdateStatusRequest, UpdateAppointmentRequest } from '../types/appointment';
 
 export interface AppointmentFilters {
   status?: string;
@@ -16,3 +16,6 @@ export const getAppointmentStats = () =>
 
 export const updateAppointmentStatus = (id: number, data: UpdateStatusRequest) =>
   apiClient.patch<Appointment>(`/api/admin/appointments/${id}/status`, data);
+
+export const updateAppointment = (id: number, data: UpdateAppointmentRequest) =>
+  apiClient.put<Appointment>(`/api/admin/appointments/${id}`, data);

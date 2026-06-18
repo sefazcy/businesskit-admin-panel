@@ -153,3 +153,65 @@ These require deliberate input or DevTools verification.
 - [ ] **staffMemberId sends as number**: Inspect the GET `/api/admin/appointments` request with staff filter active — `staffMemberId` query param must be a number (e.g. `1`), not a string (`"1"`)
 - [ ] **businessServiceId sends as number**: Same for service filter — `businessServiceId` must be a number
 - [ ] **Clear filters resets all four dropdowns**: Apply all four filters, click "Clear filters" — all four selects reset to "All"/"empty" and the table reloads unfiltered
+
+---
+
+## v2.4 — Appointment Edit Panel + Admin Notes
+
+### Edit Panel
+
+- [ ] Each appointment row has an "Edit" button in the Actions column
+- [ ] Clicking "Edit" opens the inline form panel above the table
+- [ ] Panel header shows "Edit Appointment #N" with the correct ID
+- [ ] All 10 fields are pre-populated from the loaded row
+- [ ] Customer Email pre-fills as empty when the stored value is null
+- [ ] Staff dropdown pre-selects "None" when `staffMemberId` is null
+- [ ] Service dropdown pre-selects "None" when `businessServiceId` is null
+- [ ] Date picker pre-fills with the correct date (YYYY-MM-DD)
+- [ ] Time picker pre-fills with the correct time (HH:mm)
+- [ ] Customer Note pre-fills as empty when the stored value is null
+- [ ] Admin Note pre-fills as empty when the stored value is null
+- [ ] Status dropdown pre-selects the current status
+- [ ] Cancel button closes the panel without sending any request
+- [ ] Opening a second Edit after Cancel pre-fills the new row's data (no stale data from the previous edit)
+
+### Save Behaviour
+
+- [ ] Change any field and click "Save Changes" — PUT is sent to `/api/admin/appointments/{id}`
+- [ ] Table row updates without a full page reload
+- [ ] `staffMemberName` in the row updates when Staff is changed in the edit form
+- [ ] `businessServiceTitle` in the row updates when Service is changed in the edit form
+- [ ] Stats cards update after save when Status was changed
+- [ ] Panel closes after a successful save
+- [ ] Backend error (e.g. invalid status, non-existent staff ID) shows an error banner inside the panel — panel stays open
+
+### Null Field Handling
+
+- [ ] Select "None" for Staff, save — row shows "—" and `staffMemberId` is null in DB
+- [ ] Select "None" for Service, save — row shows "—" and `businessServiceId` is null in DB
+- [ ] Clear Customer Email, save — `customerEmail` sends as `null` (not empty string)
+- [ ] Clear Customer Note, save — `note` sends as `null`
+- [ ] Clear Admin Note, save — `adminNote` sends as `null`
+- [ ] Set Admin Note text, save — adminNote is stored and pre-fills correctly on next Edit click
+
+### Interaction with Change Status Column
+
+- [ ] The quick "Change Status" dropdown in the table row still works after v2.4 changes
+- [ ] Changing status via Edit panel also updates the Status badge and Change Status dropdown in the row
+
+### DevTools Checks (Network tab)
+
+- [ ] Inspect PUT body — all 10 fields present: `customerFullName`, `customerEmail`, `customerPhone`, `staffMemberId`, `businessServiceId`, `requestedDate`, `requestedTime`, `note`, `status`, `adminNote`
+- [ ] `staffMemberId` sends as a JSON number or `null` (not `""` or `"1"`)
+- [ ] `businessServiceId` sends as a JSON number or `null`
+- [ ] `customerEmail` sends as `null` when cleared (not `""`)
+- [ ] `note` sends as `null` when cleared
+- [ ] `adminNote` sends as `null` when cleared
+- [ ] `requestedDate` sends as `"YYYY-MM-DD"` string
+- [ ] `requestedTime` sends as `"HH:mm"` string
+
+---
+
+## Known Backend Limitations
+
+- **Appointment time conflict not checked on update**: `PUT /api/admin/appointments/{id}` does not re-run the availability/working-hours conflict check that `POST` enforces. An admin can move an appointment to a conflicting time slot without a 400 error. This is known backend behavior to be addressed in a future backend sprint.

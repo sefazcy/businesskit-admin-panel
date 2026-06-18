@@ -1,14 +1,28 @@
 import { useEffect, useState } from 'react';
-import type { Appointment, AppointmentStats } from '../types/appointment';
+import type { FormEvent } from 'react';
+import type { Appointment, AppointmentStats, UpdateAppointmentRequest } from '../types/appointment';
 import type { StaffMember } from '../types/staff';
 import type { Service } from '../types/service';
 import type { AppointmentFilters } from '../api/appointmentsApi';
-import { getAppointments, getAppointmentStats, updateAppointmentStatus } from '../api/appointmentsApi';
+import { getAppointments, getAppointmentStats, updateAppointmentStatus, updateAppointment } from '../api/appointmentsApi';
 import { getAllStaff } from '../api/staffApi';
 import { getAllServices } from '../api/servicesApi';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
+
+const EMPTY_EDIT_FORM = {
+  customerFullName: '',
+  customerEmail: '',
+  customerPhone: '',
+  staffMemberId: '',
+  businessServiceId: '',
+  requestedDate: '',
+  requestedTime: '',
+  note: '',
+  status: 'Pending',
+  adminNote: '',
+};
 
 function extractError(err: unknown): string {
   if (err && typeof err === 'object' && 'response' in err) {
@@ -39,6 +53,11 @@ export default function AppointmentsPage() {
 
   const [statusError, setStatusError] = useState('');
   const [updatingIds, setUpdatingIds] = useState<Set<number>>(new Set<number>());
+
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState(EMPTY_EDIT_FORM);
+  const [editFormError, setEditFormError] = useState('');
+  const [editFormLoading, setEditFormLoading] = useState(false);
 
   useEffect(() => {
     getAllStaff().then(({ data }) => setStaffList(data)).catch(() => {});
@@ -91,6 +110,59 @@ export default function AppointmentsPage() {
         next.delete(appointment.id);
         return next;
       });
+    }
+  };
+
+  const openEdit = (appointment: Appointment) => {
+    setEditForm({
+      customerFullName: appointment.customerFullName,
+      customerEmail: appointment.customerEmail ?? '',
+      customerPhone: appointment.customerPhone,
+      staffMemberId: appointment.staffMemberId !== null ? String(appointment.staffMemberId) : '',
+      businessServiceId: appointment.businessServiceId !== null ? String(appointment.businessServiceId) : '',
+      requestedDate: appointment.requestedDate.split('T')[0],
+      requestedTime: appointment.requestedTime,
+      note: appointment.note ?? '',
+      status: appointment.status,
+      adminNote: appointment.adminNote ?? '',
+    });
+    setEditingId(appointment.id);
+    setEditFormError('');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditFormError('');
+  };
+
+  const handleEditSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (editingId === null) return;
+    setEditFormLoading(true);
+    setEditFormError('');
+
+    const payload: UpdateAppointmentRequest = {
+      customerFullName: editForm.customerFullName,
+      customerEmail: editForm.customerEmail.trim() || null,
+      customerPhone: editForm.customerPhone,
+      staffMemberId: editForm.staffMemberId !== '' ? Number(editForm.staffMemberId) : null,
+      businessServiceId: editForm.businessServiceId !== '' ? Number(editForm.businessServiceId) : null,
+      requestedDate: editForm.requestedDate,
+      requestedTime: editForm.requestedTime,
+      note: editForm.note.trim() || null,
+      status: editForm.status,
+      adminNote: editForm.adminNote.trim() || null,
+    };
+
+    try {
+      const { data } = await updateAppointment(editingId, payload);
+      setAppointments(prev => prev.map(a => a.id === data.id ? data : a));
+      fetchStats();
+      cancelEdit();
+    } catch (err) {
+      setEditFormError(extractError(err));
+    } finally {
+      setEditFormLoading(false);
     }
   };
 
@@ -207,6 +279,139 @@ export default function AppointmentsPage() {
         )}
       </div>
 
+      {editingId !== null && (
+        <div className="form-panel">
+          <h3>Edit Appointment #{editingId}</h3>
+          {editFormError && (
+            <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{editFormError}</div>
+          )}
+          <form onSubmit={handleEditSubmit}>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="edit-fullname">Customer Full Name *</label>
+                <input
+                  id="edit-fullname"
+                  type="text"
+                  value={editForm.customerFullName}
+                  onChange={e => setEditForm(f => ({ ...f, customerFullName: e.target.value }))}
+                  required
+                  maxLength={150}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-email">Customer Email</label>
+                <input
+                  id="edit-email"
+                  type="email"
+                  value={editForm.customerEmail}
+                  onChange={e => setEditForm(f => ({ ...f, customerEmail: e.target.value }))}
+                  maxLength={200}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-phone">Customer Phone *</label>
+                <input
+                  id="edit-phone"
+                  type="tel"
+                  value={editForm.customerPhone}
+                  onChange={e => setEditForm(f => ({ ...f, customerPhone: e.target.value }))}
+                  required
+                  maxLength={30}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-staff">Staff</label>
+                <select
+                  id="edit-staff"
+                  value={editForm.staffMemberId}
+                  onChange={e => setEditForm(f => ({ ...f, staffMemberId: e.target.value }))}
+                >
+                  <option value="">None</option>
+                  {staffList.map(m => (
+                    <option key={m.id} value={String(m.id)}>{m.fullName}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-service">Service</label>
+                <select
+                  id="edit-service"
+                  value={editForm.businessServiceId}
+                  onChange={e => setEditForm(f => ({ ...f, businessServiceId: e.target.value }))}
+                >
+                  <option value="">None</option>
+                  {serviceList.map(s => (
+                    <option key={s.id} value={String(s.id)}>{s.title}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-date">Date *</label>
+                <input
+                  id="edit-date"
+                  type="date"
+                  value={editForm.requestedDate}
+                  onChange={e => setEditForm(f => ({ ...f, requestedDate: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-time">Time *</label>
+                <input
+                  id="edit-time"
+                  type="time"
+                  value={editForm.requestedTime}
+                  onChange={e => setEditForm(f => ({ ...f, requestedTime: e.target.value }))}
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-status">Status *</label>
+                <select
+                  id="edit-status"
+                  value={editForm.status}
+                  onChange={e => setEditForm(f => ({ ...f, status: e.target.value }))}
+                >
+                  {VALID_STATUSES.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="form-group">
+                <label htmlFor="edit-note">Customer Note</label>
+                <textarea
+                  id="edit-note"
+                  value={editForm.note}
+                  onChange={e => setEditForm(f => ({ ...f, note: e.target.value }))}
+                  maxLength={1000}
+                  rows={3}
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="edit-admin-note">Admin Note</label>
+                <textarea
+                  id="edit-admin-note"
+                  value={editForm.adminNote}
+                  onChange={e => setEditForm(f => ({ ...f, adminNote: e.target.value }))}
+                  maxLength={1000}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="form-actions">
+              <button type="submit" className="btn-indigo" disabled={editFormLoading}>
+                {editFormLoading ? 'Saving…' : 'Save Changes'}
+              </button>
+              <button type="button" className="btn-outline" onClick={cancelEdit}>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {statusError && (
         <div className="alert alert-error" style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>{statusError}</span>
@@ -236,7 +441,7 @@ export default function AppointmentsPage() {
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
-                <th>Change Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -255,16 +460,24 @@ export default function AppointmentsPage() {
                     </span>
                   </td>
                   <td>
-                    <select
-                      className="status-select"
-                      value={a.status}
-                      disabled={updatingIds.has(a.id)}
-                      onChange={e => handleStatusChange(a, e.target.value)}
-                    >
-                      {VALID_STATUSES.map(s => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
+                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                      <button
+                        className="btn-xs edit"
+                        onClick={() => openEdit(a)}
+                      >
+                        Edit
+                      </button>
+                      <select
+                        className="status-select"
+                        value={a.status}
+                        disabled={updatingIds.has(a.id)}
+                        onChange={e => handleStatusChange(a, e.target.value)}
+                      >
+                        {VALID_STATUSES.map(s => (
+                          <option key={s} value={s}>{s}</option>
+                        ))}
+                      </select>
+                    </div>
                   </td>
                 </tr>
               ))}

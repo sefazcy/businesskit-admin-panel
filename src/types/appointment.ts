@@ -30,3 +30,16 @@ export interface UpdateStatusRequest {
   status: string;
   adminNote: string | null;
 }
+
+export interface UpdateAppointmentRequest {
+  customerFullName: string;
+  customerEmail: string | null;
+  customerPhone: string;
+  staffMemberId: number | null;
+  businessServiceId: number | null;
+  requestedDate: string;
+  requestedTime: string;
+  note: string | null;
+  status: string;
+  adminNote: string | null;
+}
