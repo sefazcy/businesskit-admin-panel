@@ -82,7 +82,7 @@ Manual smoke test checklist. Run after each release against a live backend at `h
 ## Layout / Auth
 
 - [ ] Sidebar shows **Staff** and **Services** as active, clickable links
-- [ ] Sidebar shows **Blog**, **Gallery**, **Settings** as greyed-out disabled items
+- [ ] Sidebar shows **Settings** as greyed-out disabled item
 - [ ] Active page link has the indigo left-border highlight
 - [ ] Topbar shows the logged-in user's full name
 - [ ] Logout button clears the session and redirects to `/login`
@@ -285,3 +285,86 @@ These require deliberate input or DevTools verification.
 - [ ] No delete endpoint exists — posts cannot be deleted from the admin panel
 - [ ] Language field accepts any string up to 10 chars with no enum validation — always use lowercase (e.g. `en`, `tr`)
 - [ ] Unpublishing a post does NOT clear `publishedAt` — this is intentional backend behavior
+
+---
+
+## v2.6 — Gallery Admin Page
+
+### List
+
+- [ ] Navigate to `/gallery` — page loads with gallery table (or empty-state message if no items exist)
+- [ ] "Add Item" button is visible when the form panel is not open
+- [ ] Category filter text input — typing a category name filters the list
+- [ ] Status filter select — selecting "Active" shows only active items
+- [ ] Status filter select — selecting "Inactive" shows only inactive items
+- [ ] Status filter select — selecting "All" shows all items
+- [ ] "Clear filters" button appears when any filter is active
+- [ ] "Clear filters" resets both filters and reloads the full list
+- [ ] Active items show a green "Active" badge; inactive items show an amber "Inactive" badge
+- [ ] Image thumbnail column renders a 40×40 image for items with a valid imageUrl
+- [ ] If an image URL is broken/unreachable the thumbnail cell does not show a broken-image icon (hidden via onError)
+- [ ] Gallery link in sidebar is active and navigates to `/gallery`
+- [ ] **No Delete button exists** anywhere on the page
+
+### Create (manual image URL)
+
+- [ ] "Add Item" opens the inline form panel with all fields empty / Display Order defaulting to 0
+- [ ] Active checkbox is **NOT visible** on the create form
+- [ ] Fill Title and a direct image URL, submit — new row appears at the top of the table with Active badge
+- [ ] Image thumbnail in the new row matches the URL entered
+- [ ] Cancel button closes the form without creating anything
+- [ ] Title field is required — form does not submit when empty
+- [ ] Image URL field is required — form does not submit when empty
+
+### Create (file upload)
+
+- [ ] Clicking "Upload Image" opens the file picker
+- [ ] Selecting a valid `.jpg`/`.png`/`.webp` under 5 MB — "Uploading…" appears on the button, then the Image URL field is filled with the returned `url` value
+- [ ] A preview thumbnail appears below the Image URL field after a successful upload
+- [ ] After upload completes, submitting the form creates the item with the uploaded image URL
+- [ ] Selecting a file larger than 5 MB — client-side error "Image file size must not exceed 5 MB." is shown; no upload request is sent
+- [ ] Selecting an unsupported extension (e.g. `.gif`) — backend returns a 400 error which is shown in the form error banner
+- [ ] After a failed upload the Image URL field is unchanged; user can retry or type manually
+
+### Edit
+
+- [ ] Click "Edit" on any row — form panel opens with all fields pre-populated
+- [ ] Title, Image URL, Category, Description all pre-fill correctly
+- [ ] Display Order pre-fills with the correct integer
+- [ ] **Active checkbox IS visible on the edit form**
+- [ ] Active checkbox pre-fills to the correct state (active item → checked; inactive → unchecked)
+- [ ] Cancel closes the panel without saving
+- [ ] Change a field and save — table row reflects the updated values without page reload
+- [ ] Edit an active item, leave Active checked, change only Title, save — item remains Active (isActive not silently cleared)
+- [ ] Edit an active item, uncheck Active, save — row badge changes to Inactive
+
+### Toggle Active
+
+- [ ] "Deactivate" button on an active row — badge toggles to Inactive without page reload
+- [ ] "Activate" button on an inactive row — badge toggles to Active without page reload
+- [ ] Toggling back and forth works repeatedly
+
+### Image preview
+
+- [ ] If the uploaded image URL is relative (starts with `/`), the preview thumbnail in the form resolves it against `http://localhost:5299` and displays correctly
+- [ ] If the image URL is an absolute `https://` URL it displays as-is in both the form preview and the table thumbnail
+
+### DevTools checks (Network tab)
+
+- [ ] POST body for create contains exactly 5 fields: `title`, `description`, `imageUrl`, `category`, `displayOrder` — **`isActive` is absent**
+- [ ] PUT body for update contains exactly 6 fields: `title`, `description`, `imageUrl`, `category`, `isActive`, `displayOrder`
+- [ ] `description` and `category` send as `null` when cleared (not `""`)
+- [ ] `displayOrder` sends as a JSON number literal (e.g. `0`), not a string
+- [ ] `isActive` sends as JSON boolean (`true`/`false`), not a string
+- [ ] Upload request sends as `multipart/form-data` with the file under field name `file`
+- [ ] PATCH toggle-active sends no request body
+
+### Auth
+
+- [ ] Log out, navigate to `/gallery` — redirected to `/login`
+- [ ] After logout, pressing back does not restore the gallery page with data
+
+### Known Gallery Limitations
+
+- [ ] No delete endpoint exists — items can only be deactivated, not removed
+- [ ] Creating an item while a filter is active may show the new item in the list even if it does not match the current filter — this is a known optimistic-update limitation
