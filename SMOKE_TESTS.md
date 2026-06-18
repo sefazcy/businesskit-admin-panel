@@ -791,3 +791,79 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 
 - **Today's appointments** count is UTC-based (computed by the backend using `DateTime.UtcNow`). In non-UTC timezones, the count may differ from the local business-day expectation.
 - **Dashboard makes 9 parallel requests** instead of one aggregate endpoint. Performance is fine on localhost; a dedicated `GET /api/admin/dashboard/stats` endpoint can be added in a future backend sprint to reduce request count.
+
+---
+
+## v3.2 — Working Hours / Availability Admin
+
+### Navigation
+
+- [ ] Sidebar shows "Working Hours" link between Staff and Services
+- [ ] Navigating to `/working-hours` loads the page without error
+- [ ] "Working Hours" link has active highlight when on `/working-hours`
+
+### Staff selector
+
+- [ ] Page shows "Select a staff member to manage weekly working hours." when no staff is selected
+- [ ] Staff dropdown is populated with all staff members
+- [ ] Selecting a staff member loads their schedule
+
+### Weekly schedule table
+
+- [ ] Table always renders exactly 7 rows (Monday through Sunday) once a staff member is selected
+- [ ] Days with no backend record show **Not set** badge (amber)
+- [ ] Days with `isWorkingDay = false` show **Day off** badge (red)
+- [ ] Days with `isWorkingDay = true` show **Working** badge (green), start–end times, and break window if set
+- [ ] Every row has an Edit button; there is no Delete button anywhere on the page
+
+### Creating a new working hour record (POST)
+
+- [ ] Click Edit on a day with "Not set" — form opens titled "Configure [Day]" with defaults 09:00–17:00
+- [ ] Fill in start and end times, click Save — row updates to show the configured hours
+- [ ] Verify the request was a POST (network tab or by checking `createdAt` timestamp is new)
+
+### Updating an existing record (PUT)
+
+- [ ] Click Edit on a day already configured — form opens titled "Edit [Day]" with existing values pre-filled
+- [ ] Change end time, click Save — row updates to show new end time
+- [ ] Verify the request was a PUT to `/api/admin/staff-working-hours/{id}`
+
+### Setting a day off
+
+- [ ] Click Edit on a working day, uncheck "Working day", click Save
+- [ ] Row shows **Day off** badge; working hours and break columns show —
+- [ ] Time inputs are disabled/greyed out while "Working day" is unchecked
+
+### Form validation — frontend (no server call should be made)
+
+- [ ] Submit with `isWorkingDay = true` and empty start time → error: "Start time is required for a working day."
+- [ ] Submit with start time ≥ end time → error: "Start time must be before end time."
+- [ ] Fill break start but leave break end empty → error: "Both break start and break end are required, or leave both empty."
+- [ ] Set break start before working start → error: "Break start must be within working hours."
+- [ ] Set break end after working end → error: "Break end must be within working hours."
+
+### Backend validation errors
+
+- [ ] With backend running, trigger a backend error (e.g., send an invalid day via API tool) — `extractError` message is shown in the form error banner
+
+### Staff switching
+
+- [ ] Select Staff A, see their schedule; switch to Staff B — schedule reloads cleanly for Staff B
+- [ ] Edit form closes automatically when switching staff members
+
+### Error states
+
+- [ ] Stop the backend; select a staff member — "Failed to load working hours." error message is shown
+- [ ] Stop the backend; click Save on a configured form — form error banner shows the error; form remains open
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Known limitations
+
+- **No delete endpoint** — working hour records cannot be removed; setting `isWorkingDay = false` is the only way to mark a day as off
+- **No bulk schedule copy** — each staff member's schedule must be configured individually
+- **No holiday / time-off exceptions** — only recurring weekly rules are supported
+- **No availability slot preview in v3.2** — planned for a future sprint
+- **Changing working hours does not automatically cancel existing booked appointments** — admin must review and manage affected appointments manually

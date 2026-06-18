@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import AppointmentsPage from './pages/AppointmentsPage';
 import StaffPage from './pages/StaffPage';
+import WorkingHoursPage from './pages/WorkingHoursPage';
 import ServicesPage from './pages/ServicesPage';
 import BlogPage from './pages/BlogPage';
 import GalleryPage from './pages/GalleryPage';
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="staff" element={<StaffPage />} />
+            <Route path="working-hours" element={<WorkingHoursPage />} />
             <Route path="services" element={<ServicesPage />} />
             <Route path="blog" element={<BlogPage />} />
             <Route path="gallery" element={<GalleryPage />} />

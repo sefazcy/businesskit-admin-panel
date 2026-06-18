@@ -11,6 +11,7 @@ export default function Sidebar() {
         <NavLink to="/dashboard" className={activeClass}>Dashboard</NavLink>
         <NavLink to="/appointments" className={activeClass}>Appointments</NavLink>
         <NavLink to="/staff" className={activeClass}>Staff</NavLink>
+        <NavLink to="/working-hours" className={activeClass}>Working Hours</NavLink>
         <NavLink to="/services" className={activeClass}>Services</NavLink>
         <NavLink to="/blog" className={activeClass}>Blog</NavLink>
         <NavLink to="/gallery" className={activeClass}>Gallery</NavLink>
