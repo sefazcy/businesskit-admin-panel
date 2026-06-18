@@ -944,3 +944,94 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - No customer notes, archive, or delete
 - No pagination
 - Full Customer module requires a backend Customer entity in a later sprint
+
+---
+
+## v3.5 — Customer Management Admin Page
+
+### Navigation
+
+- [ ] Sidebar shows "Customers" link between Appointments and Staff
+- [ ] Navigating to `/customers` loads the page without error
+- [ ] "Customers" link has active highlight when on `/customers`
+
+### Initial load
+
+- [ ] Customer list fetches automatically on page load (no search button required)
+- [ ] Default list shows only active customers (archived hidden by default)
+- [ ] Loading state is shown while fetching
+- [ ] Table renders with columns: ID, Full Name, Email, Phone, Status, Updated, Actions
+
+### Filters
+
+- [ ] Name filter — typing in Name field re-fetches with `?name=...`
+- [ ] Email filter — typing in Email field re-fetches with `?email=...`
+- [ ] Phone filter — typing in Phone field re-fetches with `?phone=...`
+- [ ] Include archived checkbox — toggling re-fetches with `?includeArchived=true`
+- [ ] Multiple filters active simultaneously — all params sent together
+- [ ] Clear filters button appears when any filter is active
+- [ ] Clear filters resets all fields and refetches unfiltered list
+
+### Create customer
+
+- [ ] "Add Customer" button opens the inline form panel
+- [ ] Form is titled "Add Customer"
+- [ ] Full Name is required — submitting with blank Full Name shows "Full Name is required." error and makes no API call
+- [ ] Submitting with valid Full Name creates a customer and closes form
+- [ ] Created customer appears in the list
+- [ ] Email, Phone, Notes are optional — can be left blank
+- [ ] Blank Email field sends `null` to API, not `""`
+- [ ] Blank Phone field sends `null` to API, not `""`
+- [ ] Blank Notes field sends `null` to API, not `""`
+- [ ] Invalid email format (e.g. `notanemail`) shows backend validation error in form
+
+### Edit customer
+
+- [ ] Edit button opens the form pre-filled with existing customer data
+- [ ] Form is titled "Edit Customer"
+- [ ] Changing Full Name and saving updates the row
+- [ ] Clearing Email field and saving sends `null` — not `""`
+- [ ] Clearing Phone field and saving sends `null` — not `""`
+- [ ] Clearing Notes field and saving sends `null` — not `""`
+- [ ] Cancel button closes form without saving
+
+### Archive / Unarchive
+
+- [ ] Active customer row shows "Archive" button
+- [ ] Clicking Archive — customer disappears from default list (includeArchived=false)
+- [ ] Enabling Include archived — archived customer reappears with "Archived" status badge (red)
+- [ ] Archived customer row shows "Unarchive" button
+- [ ] Clicking Unarchive — customer status badge changes to "Active" (green)
+- [ ] Archive/unarchive errors are shown above the table with a dismiss button
+
+### Status badges
+
+- [ ] Active customer shows green badge with text "Active" (`status-confirmed`)
+- [ ] Archived customer shows red badge with text "Archived" (`status-cancelled`)
+
+### No delete
+
+- [ ] No delete button exists anywhere on the page
+
+### No appointment history
+
+- [ ] No appointment history is shown in v3.5
+- [ ] No link to customer appointments exists
+
+### Error states
+
+- [ ] Stop the backend — list shows "Failed to load customers. Check that the backend is running."
+- [ ] Stop the backend — archive action shows error above table via `extractError`
+- [ ] Stop the backend — form submit shows error inside form panel via `extractError`
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Known limitations
+
+- No appointment history yet — `Appointment.CustomerId` relationship does not exist
+- No pagination
+- No duplicate customer detection
+- No customer merge
+- No hard delete
