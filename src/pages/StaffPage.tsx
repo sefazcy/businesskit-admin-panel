@@ -38,7 +38,7 @@ const EMPTY_FORM = {
   email: '',
   phone: '',
   isActive: true,
-  displayOrder: 0,
+  displayOrder: '0',
   bio: null as string | null,
   photoUrl: null as string | null,
   instagramUrl: null as string | null,
@@ -84,7 +84,7 @@ export default function StaffPage() {
       email: member.email ?? '',
       phone: member.phone ?? '',
       isActive: member.isActive,
-      displayOrder: member.displayOrder,
+      displayOrder: String(member.displayOrder),
       bio: member.bio,
       photoUrl: member.photoUrl,
       instagramUrl: member.instagramUrl,
@@ -132,7 +132,7 @@ export default function StaffPage() {
       instagramUrl: form.instagramUrl,
       linkedInUrl: form.linkedInUrl,
       isActive: form.isActive,
-      displayOrder: form.displayOrder,
+      displayOrder: parseInt(form.displayOrder, 10) || 0,
     };
 
     try {
@@ -237,7 +237,7 @@ export default function StaffPage() {
                   id="s-order"
                   type="number"
                   value={form.displayOrder}
-                  onChange={e => setForm(f => ({ ...f, displayOrder: Number(e.target.value) || 0 }))}
+                  onChange={e => setForm(f => ({ ...f, displayOrder: e.target.value }))}
                   min={0}
                 />
               </div>

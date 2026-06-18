@@ -35,10 +35,10 @@ const EMPTY_FORM = {
   title: '',
   slug: '',
   shortDescription: '',
-  price: 0,
-  durationMinutes: 0,
+  price: '0',
+  durationMinutes: '0',
   isActive: true,
-  displayOrder: 0,
+  displayOrder: '0',
   fullDescription: null as string | null,
   imageUrl: null as string | null,
 };
@@ -79,10 +79,10 @@ export default function ServicesPage() {
       title: service.title,
       slug: service.slug,
       shortDescription: service.shortDescription ?? '',
-      price: service.price,
-      durationMinutes: service.durationMinutes,
+      price: String(service.price),
+      durationMinutes: String(service.durationMinutes),
       isActive: service.isActive,
-      displayOrder: service.displayOrder,
+      displayOrder: String(service.displayOrder),
       fullDescription: service.fullDescription,
       imageUrl: service.imageUrl,
     });
@@ -124,10 +124,10 @@ export default function ServicesPage() {
           slug: form.slug,
           shortDescription: form.shortDescription || null,
           fullDescription: form.fullDescription,
-          price: form.price,
-          durationMinutes: form.durationMinutes,
+          price: parseFloat(form.price) || 0,
+          durationMinutes: parseInt(form.durationMinutes, 10) || 0,
           imageUrl: form.imageUrl,
-          displayOrder: form.displayOrder,
+          displayOrder: parseInt(form.displayOrder, 10) || 0,
         };
         await createService(payload);
       } else {
@@ -136,11 +136,11 @@ export default function ServicesPage() {
           slug: form.slug,
           shortDescription: form.shortDescription || null,
           fullDescription: form.fullDescription,
-          price: form.price,
-          durationMinutes: form.durationMinutes,
+          price: parseFloat(form.price) || 0,
+          durationMinutes: parseInt(form.durationMinutes, 10) || 0,
           imageUrl: form.imageUrl,
           isActive: form.isActive,
-          displayOrder: form.displayOrder,
+          displayOrder: parseInt(form.displayOrder, 10) || 0,
         };
         await updateService(editingId, payload);
       }
@@ -218,7 +218,7 @@ export default function ServicesPage() {
                   id="sv-price"
                   type="number"
                   value={form.price}
-                  onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
+                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                   min={0}
                   step={0.01}
                 />
@@ -229,7 +229,7 @@ export default function ServicesPage() {
                   id="sv-duration"
                   type="number"
                   value={form.durationMinutes}
-                  onChange={e => setForm(f => ({ ...f, durationMinutes: Number(e.target.value) || 0 }))}
+                  onChange={e => setForm(f => ({ ...f, durationMinutes: e.target.value }))}
                   min={0}
                 />
               </div>
@@ -239,7 +239,7 @@ export default function ServicesPage() {
                   id="sv-order"
                   type="number"
                   value={form.displayOrder}
-                  onChange={e => setForm(f => ({ ...f, displayOrder: Number(e.target.value) || 0 }))}
+                  onChange={e => setForm(f => ({ ...f, displayOrder: e.target.value }))}
                   min={0}
                 />
               </div>
