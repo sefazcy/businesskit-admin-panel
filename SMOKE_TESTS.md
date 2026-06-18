@@ -368,3 +368,95 @@ These require deliberate input or DevTools verification.
 
 - [ ] No delete endpoint exists — items can only be deactivated, not removed
 - [ ] Creating an item while a filter is active may show the new item in the list even if it does not match the current filter — this is a known optimistic-update limitation
+
+---
+
+## v2.7 — Contact Messages Admin Page
+
+### List
+
+- [ ] Navigate to `/messages` — page loads with messages table (or empty-state message if no messages exist)
+- [ ] Sidebar shows **Messages** as an active, clickable link
+- [ ] Dashboard shows a **Messages** card with "Module active"
+- [ ] Dashboard shows **Blog** and **Gallery** cards with "Module active" (no longer "Coming soon")
+- [ ] Table columns present: ID, From, Email, Subject, Date, Status, Actions
+- [ ] Unread messages show an amber "Unread" badge in the Status column
+- [ ] Read messages show a green "Read" badge in the Status column
+- [ ] Replied messages show a blue "Replied" badge alongside the Read/Unread badge
+- [ ] Archived messages show a red/grey "Archived" badge
+- [ ] Unread message rows show the sender name in **bold**; read rows show it in normal weight
+- [ ] **No Add button exists** on the page
+- [ ] **No Delete button exists** anywhere on the page
+
+### Filters
+
+- [ ] Check "Unread only" — list reloads showing only unread messages
+- [ ] Uncheck "Unread only" — all messages return
+- [ ] Check "Archived only" — list reloads showing only archived messages
+- [ ] Both filters checked simultaneously — list reloads with both params applied
+- [ ] "Clear filters" button appears when any filter is active
+- [ ] Clicking "Clear filters" resets both checkboxes and reloads the unfiltered list
+
+### DevTools checks — filter params
+
+- [ ] With "Unread only" checked: GET request includes `?unreadOnly=true`
+- [ ] With "Archived only" checked: GET request includes `?archivedOnly=true`
+- [ ] With no filters active: GET request has **no** `unreadOnly` or `archivedOnly` query params (not sent as `false`)
+
+### View / Detail panel
+
+- [ ] Clicking "View" on any row opens the detail panel above the table
+- [ ] Panel header shows "Message #N" with the correct ID
+- [ ] Full Name, Email, Phone (or —), Subject (or —) all display correctly
+- [ ] Full message body is visible in a styled block — long text wraps, not truncated
+- [ ] Line breaks in the message body are preserved (white-space: pre-wrap)
+- [ ] IP Address displays correctly (or — if null)
+- [ ] Received datetime shows a human-readable locale string
+- [ ] Updated datetime shows a human-readable locale string
+- [ ] Clicking "View" on a different row while panel is open — panel updates to the new message (no stale data)
+- [ ] Close button closes the panel
+
+### Mark Read / Unread
+
+- [ ] Open detail panel for an unread message — "Mark as Read" button is shown
+- [ ] Click "Mark as Read" — table row badge changes from "Unread" to "Read" without page reload
+- [ ] Panel button changes to "Mark as Unread" after the action
+- [ ] Click "Mark as Unread" — table row badge reverts to "Unread"; panel button reverts to "Mark as Read"
+- [ ] Toggling back and forth works repeatedly
+
+### Mark as Replied
+
+- [ ] Open detail panel for an unreplied message — "Mark as Replied" button is visible and enabled
+- [ ] Click "Mark as Replied" — table row gains "Replied" badge; button disappears from the panel
+- [ ] Re-open the panel for the same message — "Mark as Replied" button is absent (one-way, permanent)
+
+### Archive / Unarchive
+
+- [ ] Click "Archive" in detail panel — table row gains "Archived" badge; button changes to "Unarchive"
+- [ ] Click "Unarchive" in detail panel — "Archived" badge removed; button changes back to "Archive"
+- [ ] With "Archived only" filter active: after unarchiving, the list refetches and the row disappears
+- [ ] With "Unread only" filter active: after marking read, the list refetches and the row disappears
+
+### Action error handling
+
+- [ ] If a PATCH action fails, an error banner appears inside the detail panel
+- [ ] The panel stays open after a failed action
+- [ ] The error banner is not shown when no error has occurred
+
+### Auth
+
+- [ ] Log out, navigate to `/messages` — redirected to `/login`
+- [ ] After logout, pressing back does not restore the messages page with data
+
+### DevTools checks — actions
+
+- [ ] All PATCH requests (`mark-read`, `mark-unread`, `mark-replied`, `archive`, `unarchive`) send no request body
+- [ ] PATCH response updates the matching row in the table without a full page reload
+- [ ] `isRead`, `isReplied`, `isArchived` arrive as JSON booleans in the response
+
+### Known Message Limitations
+
+- [ ] No delete endpoint exists — messages cannot be removed from the admin panel
+- [ ] No pagination — all messages load in a single request; performance degrades with high volume
+- [ ] No search — cannot filter by sender name, email, or message content
+- [ ] `mark-replied` is one-way — once a message is marked as replied it cannot be un-replied
