@@ -10,7 +10,7 @@ Manual smoke test checklist. Run after each release against a live backend at `h
 - [ ] Submit with wrong credentials — error message appears, no redirect
 - [ ] Submit with `admin@businesskit.local` / `Admin123!` — redirects to `/dashboard`
 - [ ] Refresh while on `/dashboard` — stays logged in (token persisted in localStorage)
-- [ ] Navigate directly to `/login` while already logged in — redirects to `/dashboard`
+- [ ] Navigate directly to `/login` while already logged in — redirects to `/dashboard` (LoginPage returns `<Navigate to="/dashboard" />` when `isAuthenticated` is true)
 
 ---
 
@@ -21,7 +21,7 @@ Manual smoke test checklist. Run after each release against a live backend at `h
 - [ ] **Appointments** card shows "Module active"
 - [ ] **Staff** card shows "Module active"
 - [ ] **Services** card shows "Module active"
-- [ ] **Blog** and **Gallery** cards show "Coming soon"
+- [ ] All implemented module cards (Appointments, Staff, Services, Blog, Gallery, Messages, Settings) show "Module active"
 
 ---
 
@@ -82,7 +82,7 @@ Manual smoke test checklist. Run after each release against a live backend at `h
 ## Layout / Auth
 
 - [ ] Sidebar shows **Staff** and **Services** as active, clickable links
-- [ ] Sidebar shows **Settings** as greyed-out disabled item
+- [ ] Sidebar shows **Settings** as an active, clickable NavLink
 - [ ] Active page link has the indigo left-border highlight
 - [ ] Topbar shows the logged-in user's full name
 - [ ] Logout button clears the session and redirects to `/login`
@@ -612,3 +612,107 @@ These require deliberate input or DevTools verification.
 
 - [ ] No backend files were modified
 - [ ] No new migrations exist
+
+---
+
+## v3.0 — Admin Panel MVP Release Checkpoint
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+- [ ] No `console.log` or debug statements in `src/`
+- [ ] Bundle size is under 500 kB gzipped JS (expected ~100 kB)
+
+### Auth
+
+- [ ] Navigate to `http://localhost:5173/login` — login form is shown
+- [ ] Submit with wrong credentials — error message appears, no redirect
+- [ ] Submit with `admin@businesskit.local` / `Admin123!` — redirects to `/dashboard`
+- [ ] Refresh while on `/dashboard` — stays logged in (token persisted in localStorage)
+- [ ] Navigate directly to `/login` while already logged in — redirects to `/dashboard` immediately
+- [ ] Log out — redirects to `/login`; navigating to any protected route redirects back to `/login`
+
+### Routes and sidebar
+
+- [ ] All 8 sidebar NavLinks are active and navigate correctly: Dashboard, Appointments, Staff, Services, Blog, Gallery, Messages, Settings
+- [ ] No disabled or greyed-out sidebar stubs
+- [ ] Active page link has the indigo left-border highlight
+- [ ] Unknown URL (e.g. `/nonexistent`) redirects to `/dashboard`
+
+### Dashboard
+
+- [ ] Welcome message shows the logged-in user's full name
+- [ ] **Backend** card shows "Connected"
+- [ ] All 8 module cards (Appointments, Staff, Services, Blog, Gallery, Messages, Settings) show "Module active"
+
+### Appointments
+
+- [ ] List loads; filters (status, staff, service, date) work; clear filters resets all four
+- [ ] Stats cards update after a status change
+- [ ] Inline status dropdown changes status without page reload
+- [ ] Edit panel saves all fields; table row updates without reload
+- [ ] Errors surface via banner (status change error and edit form error)
+
+### Staff
+
+- [ ] Create, edit, activate/deactivate all work end-to-end
+- [ ] Toggle error surfaces as a red banner above the table
+
+### Services
+
+- [ ] Create, edit, activate/deactivate all work end-to-end
+- [ ] Toggle error surfaces as a red banner above the table
+
+### Blog
+
+- [ ] Create, edit all work end-to-end
+- [ ] Publish / Unpublish toggle updates the badge without page reload
+- [ ] **If publish/unpublish fails (backend down), a red error banner appears above the table** — this was a known silent-failure bug fixed in v3.0
+- [ ] Error banner disappears on the next successful toggle
+
+### Gallery
+
+- [ ] Create (manual URL), edit, activate/deactivate all work end-to-end
+- [ ] File upload path: select valid image → URL auto-fills → form submits → row appears with image thumbnail
+- [ ] Client-side 5 MB guard: selecting an oversized file shows an error before upload
+- [ ] Toggle error surfaces as a red banner above the table
+
+### Messages
+
+- [ ] View detail panel, Mark Read/Unread, Mark Replied, Archive/Unarchive all work end-to-end
+- [ ] Action error surfaces as a banner inside the detail panel
+
+### Settings
+
+- [ ] Settings load on mount; all fields pre-fill from backend
+- [ ] Save shows green success banner; editing a field after save clears it
+- [ ] Required-field validation (Business Name, Currency) fires client-side before PUT
+
+### Shared utilities
+
+- [ ] None of the page files define a local `extractError` — all import from `../utils/extractError`
+- [ ] Submitting a form with a field that triggers backend validation shows the exact backend message, not "An unexpected error occurred."
+
+### Release gate
+
+- [ ] Working tree is clean (`git status` shows no modified or untracked files)
+- [ ] Tag `v3.0` created and pushed
+
+---
+
+## Known System Limitations
+
+These are documented limitations accepted for v3.0 MVP. They are not bugs.
+
+- **API base URL hardcoded** — `apiClient.ts` has `baseURL: 'http://localhost:5299'`; environment variable migration (`VITE_API_URL`) is deferred post-v3.0
+- **Gallery image preview base hardcoded** — `GalleryPage.tsx` resolves relative image URLs against `http://localhost:5299`; same env migration deferred
+- **No 401 auto-logout** — no axios response interceptor exists; an expired token causes API error banners on individual pages rather than a redirect to `/login`
+- **Token presence, not validity** — `isAuthenticated` is `!!token`; a stored but expired token will appear as authenticated until an API call fails
+- **No role-based frontend enforcement** — any account with valid credentials can access the admin panel; admin role is stored but not checked client-side
+- **Dashboard "Backend: Connected" is static** — the card does not perform a real health check against the backend
+- **Dashboard stats are static** — module cards show "Module active" text, not real counts
+- **No pagination** — all list endpoints return all records in a single request; performance degrades with high data volume
+- **No search** — no full-text or field-level search in any module
+- **No delete actions** — modules without backend delete endpoints (Blog, Gallery, Messages) cannot remove records; deactivate/archive is the only available action
+- **Admin panel is desktop-first** — sidebar is a fixed 220 px column with no mobile collapse; not designed for small viewports
+- **No automated tests** — manual smoke tests (this document) are the sole release gate

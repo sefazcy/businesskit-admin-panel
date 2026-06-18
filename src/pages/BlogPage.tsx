@@ -44,6 +44,7 @@ export default function BlogPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [toggleError, setToggleError] = useState('');
 
   const fetchPosts = () => {
     setLoading(true);
@@ -147,13 +148,15 @@ export default function BlogPage() {
   };
 
   const handleTogglePublish = async (post: BlogPost) => {
+    setToggleError('');
     try {
       const { data } = post.isPublished
         ? await unpublishBlogPost(post.id)
         : await publishBlogPost(post.id);
       setPosts(prev => prev.map(p => p.id === data.id ? data : p));
-    } catch {
-      // table stays unchanged on failure
+      setToggleError('');
+    } catch (err) {
+      setToggleError(extractError(err));
     }
   };
 
@@ -352,6 +355,7 @@ export default function BlogPage() {
         </div>
       )}
 
+      {toggleError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{toggleError}</div>}
       {loading && <div className="state-message">Loading blog posts…</div>}
       {!loading && error && <div className="state-message error">{error}</div>}
       {!loading && !error && posts.length === 0 && (

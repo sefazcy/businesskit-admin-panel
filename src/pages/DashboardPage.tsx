@@ -5,7 +5,9 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <h2>Dashboard</h2>
+      <div className="page-header">
+        <h2>Dashboard</h2>
+      </div>
       <p className="page-subtitle">
         Welcome back{user?.fullName ? `, ${user.fullName}` : ''}. Here is a summary of your modules.
       </p>
