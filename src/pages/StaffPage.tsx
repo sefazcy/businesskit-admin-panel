@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import type { StaffMember, CreateStaffMemberRequest, UpdateStaffMemberRequest } from '../types/staff';
 import { getAllStaff, createStaff, updateStaff, toggleStaffActive } from '../api/staffApi';
+import { extractError } from '../utils/extractError';
 
 function toSlug(value: string): string {
   return value
@@ -11,24 +12,6 @@ function toSlug(value: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
-}
-
-function extractError(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const data = (err as { response?: { data?: unknown } }).response?.data;
-    if (data && typeof data === 'object') {
-      if ('message' in data && typeof (data as { message: unknown }).message === 'string') {
-        return (data as { message: string }).message;
-      }
-      if ('errors' in data) {
-        const msgs = Object.values(
-          (data as { errors: Record<string, string[]> }).errors
-        ).flat();
-        if (msgs.length > 0) return msgs.join(' ');
-      }
-    }
-  }
-  return 'An unexpected error occurred.';
 }
 
 const EMPTY_FORM = {
@@ -56,6 +39,7 @@ export default function StaffPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [toggleError, setToggleError] = useState('');
 
   const fetchStaff = () => {
     setLoading(true);
@@ -152,11 +136,12 @@ export default function StaffPage() {
   };
 
   const handleToggleActive = async (member: StaffMember) => {
+    setToggleError('');
     try {
       const { data } = await toggleStaffActive(member.id);
       setStaff(prev => prev.map(s => s.id === data.id ? data : s));
-    } catch {
-      // table stays unchanged on failure
+    } catch (err) {
+      setToggleError(extractError(err));
     }
   };
 
@@ -241,15 +226,17 @@ export default function StaffPage() {
                   min={0}
                 />
               </div>
-              <div className="form-check">
-                <input
-                  id="s-isactive"
-                  type="checkbox"
-                  checked={form.isActive}
-                  onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
-                />
-                <label htmlFor="s-isactive">Active</label>
-              </div>
+              {editingId !== null && (
+                <div className="form-check">
+                  <input
+                    id="s-isactive"
+                    type="checkbox"
+                    checked={form.isActive}
+                    onChange={e => setForm(f => ({ ...f, isActive: e.target.checked }))}
+                  />
+                  <label htmlFor="s-isactive">Active</label>
+                </div>
+              )}
             </div>
             <div className="form-actions">
               <button type="submit" className="btn-indigo" disabled={formLoading}>
@@ -263,6 +250,7 @@ export default function StaffPage() {
         </div>
       )}
 
+      {toggleError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{toggleError}</div>}
       {loading && <div className="state-message">Loading staff…</div>}
       {!loading && error && <div className="state-message error">{error}</div>}
       {!loading && !error && staff.length === 0 && (

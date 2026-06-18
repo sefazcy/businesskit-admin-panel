@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import type { Service, CreateServiceRequest, UpdateServiceRequest } from '../types/service';
 import { getAllServices, createService, updateService, toggleServiceActive } from '../api/servicesApi';
+import { extractError } from '../utils/extractError';
 
 function toSlug(value: string): string {
   return value
@@ -11,24 +12,6 @@ function toSlug(value: string): string {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
-}
-
-function extractError(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const data = (err as { response?: { data?: unknown } }).response?.data;
-    if (data && typeof data === 'object') {
-      if ('message' in data && typeof (data as { message: unknown }).message === 'string') {
-        return (data as { message: string }).message;
-      }
-      if ('errors' in data) {
-        const msgs = Object.values(
-          (data as { errors: Record<string, string[]> }).errors
-        ).flat();
-        if (msgs.length > 0) return msgs.join(' ');
-      }
-    }
-  }
-  return 'An unexpected error occurred.';
 }
 
 const EMPTY_FORM = {
@@ -54,6 +37,7 @@ export default function ServicesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+  const [toggleError, setToggleError] = useState('');
 
   const fetchServices = () => {
     setLoading(true);
@@ -154,11 +138,12 @@ export default function ServicesPage() {
   };
 
   const handleToggleActive = async (service: Service) => {
+    setToggleError('');
     try {
       const { data } = await toggleServiceActive(service.id);
       setServices(prev => prev.map(s => s.id === data.id ? data : s));
-    } catch {
-      // table stays unchanged on failure
+    } catch (err) {
+      setToggleError(extractError(err));
     }
   };
 
@@ -267,6 +252,7 @@ export default function ServicesPage() {
         </div>
       )}
 
+      {toggleError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{toggleError}</div>}
       {loading && <div className="state-message">Loading services…</div>}
       {!loading && error && <div className="state-message error">{error}</div>}
       {!loading && !error && services.length === 0 && (

@@ -2,24 +2,7 @@ import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import type { BusinessSettings, UpdateBusinessSettingsRequest } from '../types/businessSettings';
 import { getSettings, updateSettings } from '../api/businessSettingsApi';
-
-function extractError(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const data = (err as { response?: { data?: unknown } }).response?.data;
-    if (data && typeof data === 'object') {
-      if ('message' in data && typeof (data as { message: unknown }).message === 'string') {
-        return (data as { message: string }).message;
-      }
-      if ('errors' in data) {
-        const msgs = Object.values(
-          (data as { errors: Record<string, string[]> }).errors
-        ).flat();
-        if (msgs.length > 0) return msgs.join(' ');
-      }
-    }
-  }
-  return 'An unexpected error occurred.';
-}
+import { extractError } from '../utils/extractError';
 
 const EMPTY_FORM = {
   businessName: '',

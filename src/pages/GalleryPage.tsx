@@ -9,6 +9,7 @@ import {
   toggleGalleryItemActive,
   uploadImage,
 } from '../api/galleryApi';
+import { extractError } from '../utils/extractError';
 
 const BACKEND_BASE = 'http://localhost:5299';
 
@@ -16,24 +17,6 @@ function resolveImageUrl(url: string): string {
   if (!url.trim()) return '';
   if (url.startsWith('/')) return BACKEND_BASE + url;
   return url;
-}
-
-function extractError(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const data = (err as { response?: { data?: unknown } }).response?.data;
-    if (data && typeof data === 'object') {
-      if ('message' in data && typeof (data as { message: unknown }).message === 'string') {
-        return (data as { message: string }).message;
-      }
-      if ('errors' in data) {
-        const msgs = Object.values(
-          (data as { errors: Record<string, string[]> }).errors
-        ).flat();
-        if (msgs.length > 0) return msgs.join(' ');
-      }
-    }
-  }
-  return 'An unexpected error occurred.';
 }
 
 const EMPTY_FORM = {
@@ -59,6 +42,7 @@ export default function GalleryPage() {
   const [formError, setFormError] = useState('');
   const [formLoading, setFormLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
+  const [toggleError, setToggleError] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,11 +150,12 @@ export default function GalleryPage() {
   };
 
   const handleToggleActive = async (item: GalleryItem) => {
+    setToggleError('');
     try {
       const { data } = await toggleGalleryItemActive(item.id);
       setItems(prev => prev.map(i => i.id === data.id ? data : i));
-    } catch {
-      // table stays unchanged on failure
+    } catch (err) {
+      setToggleError(extractError(err));
     }
   };
 
@@ -334,6 +319,7 @@ export default function GalleryPage() {
         </div>
       )}
 
+      {toggleError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{toggleError}</div>}
       {loading && <div className="state-message">Loading gallery items…</div>}
       {!loading && error && <div className="state-message error">{error}</div>}
       {!loading && !error && items.length === 0 && (
@@ -371,7 +357,7 @@ export default function GalleryPage() {
                   <td>{item.category ?? '—'}</td>
                   <td>{item.displayOrder}</td>
                   <td>
-                    <span className={`status-badge ${item.isActive ? 'status-confirmed' : 'status-pending'}`}>
+                    <span className={`status-badge ${item.isActive ? 'status-confirmed' : 'status-cancelled'}`}>
                       {item.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>

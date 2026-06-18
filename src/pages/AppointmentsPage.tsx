@@ -7,6 +7,7 @@ import type { AppointmentFilters } from '../api/appointmentsApi';
 import { getAppointments, getAppointmentStats, updateAppointmentStatus, updateAppointment } from '../api/appointmentsApi';
 import { getAllStaff } from '../api/staffApi';
 import { getAllServices } from '../api/servicesApi';
+import { extractError } from '../utils/extractError';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
@@ -23,18 +24,6 @@ const EMPTY_EDIT_FORM = {
   status: 'Pending',
   adminNote: '',
 };
-
-function extractError(err: unknown): string {
-  if (err && typeof err === 'object' && 'response' in err) {
-    const data = (err as { response?: { data?: unknown } }).response?.data;
-    if (data && typeof data === 'object') {
-      if ('message' in data && typeof (data as { message: unknown }).message === 'string') {
-        return (data as { message: string }).message;
-      }
-    }
-  }
-  return 'An unexpected error occurred.';
-}
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -177,7 +166,9 @@ export default function AppointmentsPage() {
 
   return (
     <div>
-      <h2>Appointments</h2>
+      <div className="page-header">
+        <h2>Appointments</h2>
+      </div>
 
       {stats && (
         <div className="dashboard-cards" style={{ marginTop: '0.75rem', marginBottom: '1.25rem' }}>

@@ -535,3 +535,80 @@ These require deliberate input or DevTools verification.
 - [ ] No logo upload UI — logo must be entered as a URL string manually
 - [ ] No theme color picker — hex/color value must be typed manually
 - [ ] Working Hours is free text with no format enforcement
+
+---
+
+## v2.9 — Admin Panel Stabilization & Polish
+
+### Build & routes
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero warnings
+- [ ] All 8 routes still load: `/dashboard`, `/appointments`, `/staff`, `/services`, `/blog`, `/gallery`, `/messages`, `/settings`
+- [ ] All 8 sidebar NavLinks are active and navigate correctly — no disabled stubs
+- [ ] Dashboard shows all 8 cards as "Module active"
+- [ ] No route or sidebar regressions introduced
+
+### Shared extractError utility
+
+- [ ] `src/utils/extractError.ts` exists and exports a single `extractError(err: unknown): string` function
+- [ ] None of the following page files define a local `extractError` function: AppointmentsPage, StaffPage, ServicesPage, BlogPage, GalleryPage, MessagesPage, SettingsPage
+- [ ] All seven pages import `extractError` from `'../utils/extractError'`
+- [ ] Submit a form with a field that triggers ASP.NET ModelState validation (e.g. empty required field) — the exact validation message from the backend appears in the form error banner, not "An unexpected error occurred."
+
+### Appointments — page header layout
+
+- [ ] Navigate to `/appointments` — the "Appointments" heading is wrapped in a `page-header` div, consistent with all other pages
+- [ ] The stats cards row appears directly below the header (no layout regression)
+- [ ] Status change error still surfaces as a dismissible red banner above the table
+
+### Staff — isActive checkbox visibility
+
+- [ ] Click "Add Staff" to open the create form — **no Active checkbox is visible**
+- [ ] Fill in required fields and create a staff member — member is created (backend defaults to active)
+- [ ] Click "Edit" on an existing staff member — **Active checkbox IS visible** and pre-filled correctly
+- [ ] Unchecking Active on edit and saving — the staff member becomes inactive in the table
+
+### Staff — toggle error feedback
+
+- [ ] Simulate a toggle failure (e.g. disconnect backend, click Deactivate) — a red error banner appears above the table
+- [ ] The banner text reflects the actual error, not a generic fallback (when backend provides a message)
+- [ ] Successfully toggling clears any previous toggle error banner
+
+### Services — toggle error feedback
+
+- [ ] Simulate a toggle failure (e.g. disconnect backend, click Deactivate) — a red error banner appears above the table
+- [ ] The banner text is not empty
+- [ ] Successfully toggling clears any previous toggle error banner
+
+### Gallery — inactive badge colour
+
+- [ ] Active gallery items show a green "Active" badge (`status-confirmed`)
+- [ ] **Inactive gallery items show a red "Inactive" badge (`status-cancelled`)** — not amber/pending
+- [ ] Toggling an item from active to inactive changes its badge from green to red
+
+### Gallery — toggle error feedback
+
+- [ ] Simulate a toggle failure — a red error banner appears above the gallery table
+- [ ] Successfully toggling clears any previous toggle error banner
+
+### Messages — action error feedback
+
+- [ ] Open a message detail panel
+- [ ] Simulate an action failure (e.g. disconnect backend, click Mark as Read) — a red error banner appears inside the detail panel
+- [ ] The panel remains open after the failure
+- [ ] A successful action on the same message clears the error banner
+
+### Existing flows — no regressions
+
+- [ ] Staff: create, edit, and Activate/Deactivate all still work end-to-end
+- [ ] Services: create, edit, and Activate/Deactivate all still work end-to-end
+- [ ] Blog: create, edit, Publish/Unpublish all still work end-to-end
+- [ ] Gallery: create, edit, Upload Image, Activate/Deactivate all still work end-to-end
+- [ ] Messages: Mark as Read/Unread, Mark as Replied, Archive/Unarchive all still work end-to-end
+- [ ] Settings: save still works and shows the green success banner
+- [ ] Appointments: status change and edit save still work; errors surface correctly
+
+### No backend changes
+
+- [ ] No backend files were modified
+- [ ] No new migrations exist
