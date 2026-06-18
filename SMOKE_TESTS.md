@@ -105,3 +105,51 @@ These require deliberate input or DevTools verification.
 - [ ] **durationMinutes submits as JSON number**: Same check — `durationMinutes` must be a number literal
 - [ ] **displayOrder submits as JSON number**: Same check for both staff and services — `displayOrder` must be a number literal
 - [ ] **Logout then back navigation**: Log out, then press the browser back button — should not restore a logged-in session; `/staff` should redirect to `/login`
+
+---
+
+## v2.3 — Appointment Admin Actions
+
+### Stats Cards
+
+- [ ] Stats cards appear at the top of `/appointments` after page load
+- [ ] Cards show: Total, Pending, Confirmed, Cancelled, Completed, Today, Next 7 Days
+- [ ] Stats reflect the real backend counts (verify against known data)
+- [ ] Stats are global — they do not change when the status filter is applied (status is not a stats endpoint param)
+- [ ] After changing an appointment status via the row dropdown, stats cards update to reflect the new counts
+
+### Staff Filter
+
+- [ ] Staff dropdown in filter bar is populated with staff names from the backend
+- [ ] Selecting a staff member filters the table to show only their appointments
+- [ ] Selecting "All" in the staff dropdown removes the staff filter
+- [ ] Staff filter works in combination with status and date filters
+
+### Service Filter
+
+- [ ] Service dropdown in filter bar is populated with service titles from the backend
+- [ ] Selecting a service filters the table to show only appointments for that service
+- [ ] Selecting "All" in the service dropdown removes the service filter
+- [ ] Service filter works in combination with status and date filters
+
+### Status Update (Inline)
+
+- [ ] Each appointment row has a "Change Status" dropdown showing the current status
+- [ ] Selecting a different status from the dropdown immediately calls PATCH `/api/admin/appointments/{id}/status`
+- [ ] The Status badge in the same row updates without page reload
+- [ ] Refreshing the page after a status change shows the new status (persisted to backend)
+- [ ] Stats cards update after a successful status change
+- [ ] Changing a status to the same value does nothing (no request is sent)
+- [ ] If the PATCH fails, an error banner appears above the table with the backend error message
+- [ ] Error banner can be dismissed with the ✕ button
+
+### Admin Note Preservation
+
+- [ ] Open DevTools → Network, change status on an appointment that has no admin note — `adminNote` in the PATCH body should be `null`
+- [ ] If an appointment already has an `adminNote` value, the PATCH body should send that same `adminNote` value (not overwrite it with `null`)
+
+### Known Manual Checks — Appointments v2.3
+
+- [ ] **staffMemberId sends as number**: Inspect the GET `/api/admin/appointments` request with staff filter active — `staffMemberId` query param must be a number (e.g. `1`), not a string (`"1"`)
+- [ ] **businessServiceId sends as number**: Same for service filter — `businessServiceId` must be a number
+- [ ] **Clear filters resets all four dropdowns**: Apply all four filters, click "Clear filters" — all four selects reset to "All"/"empty" and the table reloads unfiltered

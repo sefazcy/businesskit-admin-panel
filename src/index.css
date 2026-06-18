@@ -566,3 +566,26 @@ a.nav-link:hover {
   background: #fee2e2;
   color: #991b1b;
 }
+
+/* ─── Inline status select ───────────────────────────────────────── */
+
+.status-select {
+  padding: 0.2rem 0.5rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 5px;
+  font-size: 0.8125rem;
+  background: white;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.13s;
+}
+
+.status-select:focus {
+  border-color: #6366f1;
+}
+
+.status-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
