@@ -1097,3 +1097,112 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - No appointment history UI in v3.6
 - Old appointments remain unlinked until manually linked by admin
 - Snapshot customer fields and linked customer record can differ — this is expected
+
+---
+
+## v3.9 — Notifications UI
+
+### Topbar
+
+- [ ] Topbar loads without breaking when the notification API is down or returns an error
+- [ ] Topbar shows a "Notifications" link on every page after login
+- [ ] When `unreadCount > 0`, an indigo badge with the count appears next to the Notifications link
+- [ ] When `unreadCount = 0`, no badge is shown (link text only)
+- [ ] Clicking the Notifications link in the topbar navigates to `/notifications`
+- [ ] Logout button behavior is unchanged
+
+### Sidebar
+
+- [ ] Sidebar shows "Notifications" link between Customers and Staff
+- [ ] Navigating to `/notifications` gives the Notifications link the active highlight
+- [ ] All other sidebar links are unchanged and still work
+
+### Notifications page — load
+
+- [ ] Navigate to `/notifications` — page loads with title "Notifications"
+- [ ] Subtitle "Review recent admin notifications and mark them as read or unread." is shown
+- [ ] Notifications list fetches automatically on page load with default `take=50`
+- [ ] Loading state is shown while fetching
+- [ ] Table renders with columns: Status, Title, Message, Type, Related, Created, Actions
+
+### Filters
+
+- [ ] "Unread only" checkbox — checking it refetches with `?unreadOnly=true`
+- [ ] Unchecking "Unread only" — refetches without the `unreadOnly` param
+- [ ] Type select — selecting a type refetches with `?type=<value>`
+- [ ] Type select — selecting "All types" refetches without a `type` param
+- [ ] Take select — changing value refetches with the new `?take=<value>` param
+- [ ] Take select options: 10, 25, 50, 100, 200 — all available
+- [ ] "Refresh" button — triggers a manual refetch with current filters
+- [ ] "Refresh" button is disabled while loading
+
+### Mark read / unread (row actions)
+
+- [ ] Unread notification row shows a "Mark read" button
+- [ ] Clicking "Mark read" calls `PATCH /api/admin/notifications/{id}/read` with no body
+- [ ] Row status badge changes from "Unread" (amber) to "Read" (green) without page reload
+- [ ] "Mark read" button on the row changes to "Mark unread" after the action
+- [ ] Read notification row shows a "Mark unread" button
+- [ ] Clicking "Mark unread" calls `PATCH /api/admin/notifications/{id}/unread` with no body
+- [ ] Row status badge changes from "Read" (green) to "Unread" (amber) without page reload
+- [ ] Row action button is disabled while its PATCH request is in flight
+
+### Mark all as read
+
+- [ ] "Mark all as read" button triggers `PATCH /api/admin/notifications/read-all` with no body
+- [ ] After the request completes, the notifications list refetches
+- [ ] All visible rows show "Read" status after mark-all completes
+- [ ] "Mark all as read" button is disabled while the request is in flight or while loading
+
+### Status badges
+
+- [ ] Unread notifications show an amber "Unread" badge (`status-pending`)
+- [ ] Read notifications show a green "Read" badge (`status-confirmed`)
+- [ ] Unread title is shown in bold; read title is normal weight
+
+### Type column
+
+- [ ] `AppointmentCreated` displays as "Appointment Created"
+- [ ] `AppointmentConfirmed` displays as "Appointment Confirmed"
+- [ ] `AppointmentCancelled` displays as "Appointment Cancelled"
+- [ ] `ContactMessageReceived` displays as "Contact Message"
+- [ ] Unknown types fall back to displaying the raw type string
+
+### Related column
+
+- [ ] Notification with `relatedEntityType` and `relatedEntityId` shows "{type} #{id}"
+- [ ] Appointment-related notifications link to `/appointments`
+- [ ] ContactMessage-related notifications link to `/messages`
+- [ ] Notification with no related entity shows "—"
+
+### Empty state
+
+- [ ] Filtering to a type/combination with no matches shows "No notifications found."
+- [ ] "No notifications found." is shown when the backend returns an empty array
+
+### Error handling
+
+- [ ] If the list fetch fails, an error message is shown ("Failed to load notifications.")
+- [ ] If a mark-read/unread action fails, a dismissible error banner appears above the filters
+- [ ] Error banner can be dismissed with the ✕ button
+- [ ] Page does not crash on API failure
+
+### No delete / archive
+
+- [ ] No delete button exists anywhere on the Notifications page
+- [ ] No archive button exists anywhere on the Notifications page
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+- [ ] `git status --short` shows exactly: `M SMOKE_TESTS.md`, `M src/App.tsx`, `M src/components/layout/Sidebar.tsx`, `M src/components/layout/Topbar.tsx`, `?? src/api/notificationsApi.ts`, `?? src/pages/NotificationsPage.tsx`, `?? src/types/notification.ts`
+
+### Known limitations
+
+- No realtime notifications — count and list update only on page load or manual refresh
+- No polling — unread count in topbar reflects the state at login/page load
+- No notification dropdown — notifications are on a dedicated page only
+- No notification preferences — all notification types are always visible
+- No archive / delete
+- No user-specific notifications — all notifications are admin-wide
+- Topbar unread count does not update after mark-read/unread actions on the Notifications page unless the user navigates away and back

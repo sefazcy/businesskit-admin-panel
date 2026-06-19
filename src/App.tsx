@@ -13,6 +13,7 @@ import GalleryPage from './pages/GalleryPage';
 import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
 import CustomersPage from './pages/CustomersPage';
+import NotificationsPage from './pages/NotificationsPage';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="appointments" element={<AppointmentsPage />} />
             <Route path="customers" element={<CustomersPage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route path="staff" element={<StaffPage />} />
             <Route path="working-hours" element={<WorkingHoursPage />} />
             <Route path="services" element={<ServicesPage />} />
