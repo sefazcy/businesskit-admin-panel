@@ -5,9 +5,11 @@ import type { StaffMember } from '../types/staff';
 import type { Service } from '../types/service';
 import type { AppointmentFilters } from '../api/appointmentsApi';
 import { getAppointments, getAppointmentStats, updateAppointmentStatus, updateAppointment } from '../api/appointmentsApi';
+import { getCustomers } from '../api/customersApi';
 import { getAllStaff } from '../api/staffApi';
 import { getAllServices } from '../api/servicesApi';
 import { extractError } from '../utils/extractError';
+import type { Customer } from '../types/customer';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
@@ -16,6 +18,7 @@ const EMPTY_EDIT_FORM = {
   customerFullName: '',
   customerEmail: '',
   customerPhone: '',
+  customerId: '',
   staffMemberId: '',
   businessServiceId: '',
   requestedDate: '',
@@ -34,6 +37,7 @@ export default function AppointmentsPage() {
 
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
   const [serviceList, setServiceList] = useState<Service[]>([]);
+  const [customerList, setCustomerList] = useState<Customer[]>([]);
 
   const [statusFilter, setStatusFilter] = useState('');
   const [staffFilter, setStaffFilter] = useState('');
@@ -51,6 +55,7 @@ export default function AppointmentsPage() {
   useEffect(() => {
     getAllStaff().then(({ data }) => setStaffList(data)).catch(() => {});
     getAllServices().then(({ data }) => setServiceList(data)).catch(() => {});
+    getCustomers({ includeArchived: false }).then(({ data }) => setCustomerList(data)).catch(() => {});
   }, []);
 
   const fetchStats = () => {
@@ -109,6 +114,7 @@ export default function AppointmentsPage() {
       customerPhone: appointment.customerPhone,
       staffMemberId: appointment.staffMemberId !== null ? String(appointment.staffMemberId) : '',
       businessServiceId: appointment.businessServiceId !== null ? String(appointment.businessServiceId) : '',
+      customerId: appointment.customerId !== null ? String(appointment.customerId) : '',
       requestedDate: appointment.requestedDate.split('T')[0],
       requestedTime: appointment.requestedTime,
       note: appointment.note ?? '',
@@ -141,6 +147,7 @@ export default function AppointmentsPage() {
       note: editForm.note.trim() || null,
       status: editForm.status,
       adminNote: editForm.adminNote.trim() || null,
+      customerId: editForm.customerId !== '' ? Number(editForm.customerId) : null,
     };
 
     try {
@@ -391,6 +398,35 @@ export default function AppointmentsPage() {
                 />
               </div>
             </div>
+            <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="form-group">
+                <label htmlFor="edit-customer">Linked Customer</label>
+                {editForm.customerId !== '' && !customerList.some(c => String(c.id) === editForm.customerId) && (
+                  <div style={{ fontSize: '0.8rem', color: '#b45309', marginBottom: '0.4rem' }}>
+                    Currently linked to an archived or deleted customer
+                    {appointments.find(a => a.id === editingId)?.customerLinkedFullName
+                      ? ` (${appointments.find(a => a.id === editingId)?.customerLinkedFullName})`
+                      : ` (ID: ${editForm.customerId})`}
+                    — select a replacement or clear the link.
+                  </div>
+                )}
+                <select
+                  id="edit-customer"
+                  value={editForm.customerId}
+                  onChange={e => setEditForm(f => ({ ...f, customerId: e.target.value }))}
+                >
+                  <option value="">No linked customer</option>
+                  {customerList.map(c => (
+                    <option key={c.id} value={String(c.id)}>
+                      {c.fullName}{c.email ? ` — ${c.email}` : ''}{c.phone ? ` (${c.phone})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <small style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '0.25rem', display: 'block' }}>
+                  Changing the linked customer does not overwrite the snapshot name, email, or phone.
+                </small>
+              </div>
+            </div>
             <div className="form-actions">
               <button type="submit" className="btn-indigo" disabled={editFormLoading}>
                 {editFormLoading ? 'Saving…' : 'Save Changes'}
@@ -439,7 +475,14 @@ export default function AppointmentsPage() {
               {appointments.map(a => (
                 <tr key={a.id}>
                   <td className="col-id">{a.id}</td>
-                  <td>{a.customerFullName}</td>
+                  <td>
+                    <div>{a.customerFullName}</div>
+                    {a.customerLinkedFullName && (
+                      <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                        Linked: {a.customerLinkedFullName}
+                      </div>
+                    )}
+                  </td>
                   <td>{a.customerPhone}</td>
                   <td>{a.staffMemberName ?? '—'}</td>
                   <td>{a.businessServiceTitle ?? '—'}</td>

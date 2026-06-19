@@ -1035,3 +1035,65 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - No duplicate customer detection
 - No customer merge
 - No hard delete
+
+---
+
+## v3.6 — Appointment Customer Linking
+
+### Appointments page compatibility
+
+- [ ] Appointments page loads after backend v3.6 with no errors
+- [ ] Existing appointment rows display correctly — snapshot customer name shown as before
+- [ ] Existing appointment status update still works
+- [ ] Existing appointment edit fields (name, email, phone, date, time, staff, service, status, notes) still work
+
+### Table — linked customer display
+
+- [ ] Appointment with no linked customer shows only snapshot `customerFullName` in the Customer column
+- [ ] Appointment with a linked customer shows snapshot name on the first line and "Linked: {customerLinkedFullName}" below it in smaller grey text
+
+### Edit panel — Linked Customer selector
+
+- [ ] Edit panel opens when clicking Edit on an appointment row
+- [ ] Linked Customer `<select>` is present in the edit form
+- [ ] Active customers (non-archived) are listed as options
+- [ ] Archived customers are NOT shown in the selector
+- [ ] Appointment with no linked customer shows "No linked customer" selected
+- [ ] Appointment with a linked customer shows that customer pre-selected
+
+### Linking a customer
+
+- [ ] Select an active customer from the dropdown, click Save Changes
+- [ ] Response includes `customerId` matching the selected customer
+- [ ] Response includes `customerLinkedFullName` from the Customer record
+- [ ] Table row updates to show "Linked: {name}" below snapshot name
+- [ ] Snapshot `customerFullName`, `customerEmail`, `customerPhone` are unchanged after linking
+
+### Unlinking a customer
+
+- [ ] Select "No linked customer" from the dropdown, click Save Changes
+- [ ] Response includes `customerId: null` and `customerLinkedFullName: null`
+- [ ] Table row no longer shows the "Linked:" line
+
+### Archived customer edge case
+
+- [ ] If an appointment is linked to a customer that is later archived, the edit form shows a warning: "Currently linked to an archived or deleted customer"
+- [ ] The warning includes the customer's name or ID
+- [ ] The selector defaults to "No linked customer" in this case
+
+### Backend validation errors
+
+- [ ] Linking to a non-existent customer ID (e.g. via direct API test) returns a 400 error shown via `extractError` in the form panel
+- [ ] Linking to an archived customer returns a 400 error shown via `extractError` in the form panel
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Known limitations
+
+- No auto-link by email or phone
+- No customer creation from inside the appointment form
+- No appointment history UI in v3.6
+- Old appointments remain unlinked until manually linked by admin
+- Snapshot customer fields and linked customer record can differ — this is expected

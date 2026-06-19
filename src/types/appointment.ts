@@ -1,5 +1,7 @@
 export interface Appointment {
   id: number;
+  customerId: number | null;
+  customerLinkedFullName: string | null;
   customerFullName: string;
   customerEmail: string | null;
   customerPhone: string;
@@ -42,4 +44,5 @@ export interface UpdateAppointmentRequest {
   note: string | null;
   status: string;
   adminNote: string | null;
+  customerId: number | null;
 }
