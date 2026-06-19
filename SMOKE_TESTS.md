@@ -1206,3 +1206,124 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - No archive / delete
 - No user-specific notifications — all notifications are admin-wide
 - Topbar unread count does not update after mark-read/unread actions on the Notifications page unless the user navigates away and back
+
+---
+
+## v4.2 — Payments UI
+
+### Navigation
+
+- [ ] Sidebar shows "Payments" link between Messages and Settings
+- [ ] Navigating to `/payments` loads the page without error
+- [ ] "Payments" link has the indigo left-border active highlight when on `/payments`
+
+### List load
+
+- [ ] Navigate to `/payments` — a brief "Loading payments…" message is shown
+- [ ] After load, table renders with columns: ID, Appt., Customer, Amount, Status, Provider, Status Date, Notes / Reason, Created, Actions
+- [ ] If no payments exist, "No payments found." is shown
+- [ ] If the backend is unreachable, "Failed to load payments. Check that the backend is running." error is shown
+
+### Status badges
+
+- [ ] Pending payment shows amber "Pending" badge (`status-pending`)
+- [ ] Paid payment shows green "Paid" badge (`status-paid`)
+- [ ] Failed payment shows red "Failed" badge (`status-failed`)
+- [ ] Cancelled payment shows red "Cancelled" badge (`status-cancelled`)
+- [ ] Refunded payment shows purple "Refunded" badge (`status-refunded`)
+
+### Status Date column
+
+- [ ] Paid payment shows `paidAt` in the Status Date column
+- [ ] Failed payment shows `failedAt` in the Status Date column
+- [ ] Refunded payment shows `refundedAt` in the Status Date column
+- [ ] Pending or Cancelled payment shows "—" in the Status Date column
+
+### Notes / Reason column
+
+- [ ] Payment with a `failureReason` shows the failure reason (truncated at 50 chars with "…" if longer)
+- [ ] Payment with only `notes` shows the notes (truncated similarly)
+- [ ] Payment with neither shows "—"
+
+### Status filter
+
+- [ ] Status select shows options: All, Pending, Paid, Failed, Cancelled, Refunded
+- [ ] Selecting "Pending" reloads the table with only Pending payments (`?status=Pending` query param)
+- [ ] Selecting "Paid" reloads the table with only Paid payments
+- [ ] Selecting "All" removes the status filter and reloads all payments
+- [ ] "Clear filters" button appears when a status filter is active
+- [ ] Clicking "Clear filters" resets the select to "All" and reloads the full list
+
+### Action buttons — Pending payments
+
+- [ ] Pending payment row shows two action buttons: "Mark Paid" and "Mark Failed"
+- [ ] No action buttons are shown for Cancelled payments
+
+### Mark Paid (immediate action)
+
+- [ ] Click "Mark Paid" on a Pending row — button shows "…" while in flight
+- [ ] After success: row status badge changes from amber "Pending" to green "Paid"
+- [ ] Row gains a "Mark Refunded" button; "Mark Paid" and "Mark Failed" buttons disappear
+- [ ] `paidAt` now shows in the Status Date column for that row
+- [ ] No page reload — only the affected row updates
+- [ ] If the action fails, a dismissible red error banner appears above the table
+
+### Mark Failed (inline confirmation panel)
+
+- [ ] Click "Mark Failed" on a Pending row — an inline form panel opens above the table
+- [ ] Panel header shows "Mark as Failed — Payment #N" with the correct ID
+- [ ] Panel contains a "Failure Reason" textarea (optional)
+- [ ] "Confirm Failed" button submits the action
+- [ ] "Cancel" button closes the panel without making any API call
+- [ ] After submit success: panel closes, row status badge changes to red "Failed"
+- [ ] `failedAt` now shows in the Status Date column; entered reason appears in Notes / Reason column
+- [ ] "Mark Paid" and "Mark Failed" buttons disappear from the row
+- [ ] Submitting with an empty Failure Reason is accepted (field is optional)
+- [ ] If the action fails, a red error banner appears inside the panel; panel stays open
+
+### Mark Refunded (inline confirmation panel)
+
+- [ ] "Mark Refunded" button appears only on Paid payment rows
+- [ ] Click "Mark Refunded" on a Paid row — an inline form panel opens above the table
+- [ ] Panel header shows "Mark as Refunded — Payment #N" with the correct ID
+- [ ] Panel contains a "Notes (optional)" textarea
+- [ ] "Confirm Refunded" button submits the action
+- [ ] "Cancel" button closes the panel without making any API call
+- [ ] After submit success: panel closes, row status badge changes to purple "Refunded"
+- [ ] `refundedAt` now shows in the Status Date column; entered notes appear in Notes / Reason column
+- [ ] "Mark Refunded" button disappears from the row
+- [ ] Submitting with empty Notes is accepted (field is optional)
+- [ ] If the action fails, a red error banner appears inside the panel; panel stays open
+
+### Blocked transitions (backend enforcement)
+
+- [ ] Attempt to mark a Paid payment as Paid again (e.g. via API) — backend returns 400
+- [ ] Attempt to mark a Paid payment as Failed (only Refunded is allowed) — backend returns 400
+- [ ] The admin panel never offers the "Mark Failed" button on a Paid row (UI prevents impossible transitions)
+
+### Error handling
+
+- [ ] Action error banner on mark-paid failure has a ✕ dismiss button
+- [ ] Dismissing the banner clears it; a subsequent successful action does not re-show it
+- [ ] Panel error on mark-failed / mark-refunded failure does not have a separate dismiss button (panel can be closed with "Cancel")
+
+### DevTools checks (Network tab)
+
+- [ ] `GET /api/admin/payments` with `?status=Pending` when status filter is active
+- [ ] `PATCH /api/admin/payments/{id}/mark-paid` sends no request body
+- [ ] `PATCH /api/admin/payments/{id}/mark-failed` sends `{ "failureReason": "..." }` or `{ "failureReason": null }`
+- [ ] `PATCH /api/admin/payments/{id}/mark-refunded` sends `{ "notes": "..." }` or `{ "notes": null }`
+- [ ] All three PATCH responses return 200 with a full `PaymentDto` object
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Known limitations
+
+- No payment creation from the admin panel UI (payments are created via `POST /api/admin/appointments/{id}/payments`)
+- No appointment-level payments view (only the global list at `/payments`)
+- No pagination — all matching payments load in a single request (backend default `take=50`)
+- No date range filter
+- No search by amount or provider
+- Real payment provider integration (Stripe, etc.) is not implemented; only Manual provider is supported

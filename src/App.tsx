@@ -14,6 +14,7 @@ import MessagesPage from './pages/MessagesPage';
 import SettingsPage from './pages/SettingsPage';
 import CustomersPage from './pages/CustomersPage';
 import NotificationsPage from './pages/NotificationsPage';
+import PaymentsPage from './pages/PaymentsPage';
 
 export default function App() {
   return (
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="blog" element={<BlogPage />} />
             <Route path="gallery" element={<GalleryPage />} />
             <Route path="messages" element={<MessagesPage />} />
+            <Route path="payments" element={<PaymentsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
