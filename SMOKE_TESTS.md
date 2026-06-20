@@ -1330,6 +1330,62 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 
 ---
 
+## v5.1 — Appointment Payment Actions
+
+### Appointments page — Payment column
+
+- [ ] Navigate to `/appointments` — page loads normally; existing table columns (ID, Customer, Phone, Staff, Service, Date, Time, Status) still present
+- [ ] A new "Payment" column is visible to the right of the Status column
+- [ ] While payment info is loading per row, a "…" placeholder is shown in the Payment cell
+- [ ] If payment fetch fails for one appointment, that cell shows "Payment unavailable" — other rows and the page are unaffected
+- [ ] Appointment with no payment shows "No payment" text and a "Create" button in the Payment cell
+- [ ] Appointment with a payment shows: payment ID, amount + currency, and a coloured status badge
+
+### Create Payment
+
+- [ ] Click "Create" on a row whose appointment has a linked service with price > 0 — payment is created automatically using the service price (no prompt shown)
+- [ ] Click "Create" on a row with no service or a zero-price service — a browser `prompt()` asks for an amount
+- [ ] Entering a valid amount in the prompt creates a payment; the cell refreshes to show the new Pending payment
+- [ ] Cancelling the prompt (pressing Cancel) does nothing — no API call is made
+- [ ] Entering an invalid amount (non-numeric or ≤ 0) shows an inline error message below the Payment cell
+- [ ] If the `POST /api/admin/appointments/{id}/payments` call fails, a red error message appears below the Payment cell (not a page crash)
+- [ ] Default currency for created payments is TRY
+- [ ] Newly created payment shows a Pending status badge
+
+### Mark Paid
+
+- [ ] Pending payment rows show a "Mark Paid" button in the Payment cell
+- [ ] Clicking "Mark Paid" calls `PATCH /api/admin/payments/{id}/mark-paid`
+- [ ] After success, the status badge in the Payment cell changes from amber "Pending" to green "Paid" without page reload
+- [ ] "Mark Paid" button disappears after the payment is marked paid
+- [ ] If "Mark Paid" fails, a red error message appears below the Payment cell
+- [ ] Non-pending payments (Paid, Failed, Refunded) do not show a "Mark Paid" button
+
+### Payments link
+
+- [ ] Payment cells for appointments with an existing payment show a "Payments ↗" button
+- [ ] Clicking "Payments ↗" navigates to `/payments`
+
+### Resilience
+
+- [ ] Stop the backend after appointments load — existing payment cells already loaded are unaffected
+- [ ] Stop the backend before appointments load — appointments page shows "Failed to load appointments." error; no crash
+- [ ] If one appointment's payment fetch returns an error while others succeed, only that row shows "Payment unavailable"
+
+### No regressions
+
+- [ ] Appointments list still loads with filters (status, staff, service, date)
+- [ ] Inline status dropdown still updates appointment status without page reload
+- [ ] Edit panel still opens, saves all fields, and closes correctly
+- [ ] Stats cards still update after a status change
+- [ ] Payments page (`/payments`) still loads and all actions (Mark Paid, Mark Failed, Mark Refunded) still work
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+---
+
 ## v5.0 — Settings currency select
 
 ### Settings page load

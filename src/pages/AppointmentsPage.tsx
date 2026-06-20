@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { FormEvent } from 'react';
 import type { Appointment, AppointmentStats, UpdateAppointmentRequest } from '../types/appointment';
+import type { Payment } from '../types/payment';
 import type { StaffMember } from '../types/staff';
 import type { Service } from '../types/service';
 import type { AppointmentFilters } from '../api/appointmentsApi';
@@ -8,11 +10,13 @@ import { getAppointments, getAppointmentStats, updateAppointmentStatus, updateAp
 import { getCustomers } from '../api/customersApi';
 import { getAllStaff } from '../api/staffApi';
 import { getAllServices } from '../api/servicesApi';
+import { getAppointmentPayments, createAppointmentPayment, markPaymentPaid } from '../api/paymentsApi';
 import { extractError } from '../utils/extractError';
 import type { Customer } from '../types/customer';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
+const DEFAULT_PAYMENT_CURRENCY = 'TRY';
 
 const EMPTY_EDIT_FORM = {
   customerFullName: '',
@@ -28,7 +32,17 @@ const EMPTY_EDIT_FORM = {
   adminNote: '',
 };
 
+type PaymentState = Payment[] | 'loading' | 'error';
+
+function getLatestPayment(payments: Payment[]): Payment | null {
+  if (payments.length === 0) return null;
+  return payments.reduce((latest, p) =>
+    new Date(p.createdAt) > new Date(latest.createdAt) ? p : latest
+  );
+}
+
 export default function AppointmentsPage() {
+  const navigate = useNavigate();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,11 +66,35 @@ export default function AppointmentsPage() {
   const [editFormError, setEditFormError] = useState('');
   const [editFormLoading, setEditFormLoading] = useState(false);
 
+  const [appointmentPayments, setAppointmentPayments] = useState<Record<number, PaymentState>>({});
+  const [paymentActionIds, setPaymentActionIds] = useState<Set<number>>(new Set<number>());
+  const [paymentErrors, setPaymentErrors] = useState<Record<number, string>>({});
+
   useEffect(() => {
     getAllStaff().then(({ data }) => setStaffList(data)).catch(() => {});
     getAllServices().then(({ data }) => setServiceList(data)).catch(() => {});
     getCustomers({ includeArchived: false }).then(({ data }) => setCustomerList(data)).catch(() => {});
   }, []);
+
+  const loadPaymentForAppointment = (appointmentId: number) => {
+    setAppointmentPayments(prev => ({ ...prev, [appointmentId]: 'loading' }));
+    getAppointmentPayments(appointmentId)
+      .then(({ data }) => setAppointmentPayments(prev => ({ ...prev, [appointmentId]: data })))
+      .catch(() => setAppointmentPayments(prev => ({ ...prev, [appointmentId]: 'error' })));
+  };
+
+  const loadPaymentsForAppointments = (appts: Appointment[]) => {
+    setAppointmentPayments(prev => {
+      const next = { ...prev };
+      appts.forEach(a => { next[a.id] = 'loading'; });
+      return next;
+    });
+    appts.forEach(a => {
+      getAppointmentPayments(a.id)
+        .then(({ data }) => setAppointmentPayments(prev => ({ ...prev, [a.id]: data })))
+        .catch(() => setAppointmentPayments(prev => ({ ...prev, [a.id]: 'error' })));
+    });
+  };
 
   const fetchStats = () => {
     getAppointmentStats()
@@ -74,7 +112,10 @@ export default function AppointmentsPage() {
     if (serviceFilter) filters.businessServiceId = Number(serviceFilter);
 
     getAppointments(filters)
-      .then(({ data }) => setAppointments(data))
+      .then(({ data }) => {
+        setAppointments(data);
+        loadPaymentsForAppointments(data);
+      })
       .catch(() => setError('Failed to load appointments. Check that the backend is running.'))
       .finally(() => setLoading(false));
   };
@@ -159,6 +200,56 @@ export default function AppointmentsPage() {
       setEditFormError(extractError(err));
     } finally {
       setEditFormLoading(false);
+    }
+  };
+
+  const handleCreatePayment = async (appointment: Appointment) => {
+    setPaymentErrors(prev => ({ ...prev, [appointment.id]: '' }));
+
+    let amount: number;
+    const service = serviceList.find(s => s.id === appointment.businessServiceId);
+    if (service && service.price > 0) {
+      amount = service.price;
+    } else {
+      const input = window.prompt('Enter payment amount:');
+      if (input === null) return;
+      const parsed = parseFloat(input);
+      if (isNaN(parsed) || parsed <= 0) {
+        setPaymentErrors(prev => ({ ...prev, [appointment.id]: 'Invalid amount entered.' }));
+        return;
+      }
+      amount = parsed;
+    }
+
+    setPaymentActionIds(prev => new Set([...prev, appointment.id]));
+    try {
+      await createAppointmentPayment(appointment.id, { amount, currency: DEFAULT_PAYMENT_CURRENCY });
+      loadPaymentForAppointment(appointment.id);
+    } catch (err) {
+      setPaymentErrors(prev => ({ ...prev, [appointment.id]: extractError(err) }));
+    } finally {
+      setPaymentActionIds(prev => {
+        const next = new Set(prev);
+        next.delete(appointment.id);
+        return next;
+      });
+    }
+  };
+
+  const handleMarkPaymentPaid = async (appointment: Appointment, paymentId: number) => {
+    setPaymentErrors(prev => ({ ...prev, [appointment.id]: '' }));
+    setPaymentActionIds(prev => new Set([...prev, appointment.id]));
+    try {
+      await markPaymentPaid(paymentId);
+      loadPaymentForAppointment(appointment.id);
+    } catch (err) {
+      setPaymentErrors(prev => ({ ...prev, [appointment.id]: extractError(err) }));
+    } finally {
+      setPaymentActionIds(prev => {
+        const next = new Set(prev);
+        next.delete(appointment.id);
+        return next;
+      });
     }
   };
 
@@ -468,53 +559,121 @@ export default function AppointmentsPage() {
                 <th>Date</th>
                 <th>Time</th>
                 <th>Status</th>
+                <th>Payment</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {appointments.map(a => (
-                <tr key={a.id}>
-                  <td className="col-id">{a.id}</td>
-                  <td>
-                    <div>{a.customerFullName}</div>
-                    {a.customerLinkedFullName && (
-                      <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem' }}>
-                        Linked: {a.customerLinkedFullName}
+              {appointments.map(a => {
+                const payState = appointmentPayments[a.id];
+                const isActing = paymentActionIds.has(a.id);
+                const payErr = paymentErrors[a.id];
+                const latest = Array.isArray(payState) ? getLatestPayment(payState) : null;
+
+                return (
+                  <tr key={a.id}>
+                    <td className="col-id">{a.id}</td>
+                    <td>
+                      <div>{a.customerFullName}</div>
+                      {a.customerLinkedFullName && (
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.15rem' }}>
+                          Linked: {a.customerLinkedFullName}
+                        </div>
+                      )}
+                    </td>
+                    <td>{a.customerPhone}</td>
+                    <td>{a.staffMemberName ?? '—'}</td>
+                    <td>{a.businessServiceTitle ?? '—'}</td>
+                    <td>{a.requestedDate.split('T')[0]}</td>
+                    <td>{a.requestedTime}</td>
+                    <td>
+                      <span className={`status-badge status-${a.status.toLowerCase()}`}>
+                        {a.status}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ minWidth: '155px' }}>
+                        {(payState === undefined || payState === 'loading') && (
+                          <span style={{ color: '#9ca3af', fontSize: '0.78rem' }}>…</span>
+                        )}
+                        {payState === 'error' && (
+                          <span style={{ color: '#dc2626', fontSize: '0.78rem' }}>Payment unavailable</span>
+                        )}
+                        {Array.isArray(payState) && !latest && (
+                          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <span style={{ color: '#6b7280', fontSize: '0.78rem' }}>No payment</span>
+                            <button
+                              className="btn-xs"
+                              disabled={isActing}
+                              onClick={() => handleCreatePayment(a)}
+                              style={{ fontSize: '0.7rem' }}
+                            >
+                              {isActing ? '…' : 'Create'}
+                            </button>
+                          </div>
+                        )}
+                        {Array.isArray(payState) && latest && (
+                          <div>
+                            <div style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
+                              <span style={{ color: '#6b7280' }}>#{latest.id}</span>
+                              {' '}
+                              <span style={{ whiteSpace: 'nowrap' }}>
+                                {Number(latest.amount).toFixed(2)} {latest.currency}
+                              </span>
+                              {' '}
+                              <span className={`status-badge status-${latest.status.toLowerCase()}`}>
+                                {latest.status}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.2rem', alignItems: 'center' }}>
+                              {latest.status === 'Pending' && (
+                                <button
+                                  className="btn-xs activate"
+                                  disabled={isActing}
+                                  onClick={() => handleMarkPaymentPaid(a, latest.id)}
+                                  style={{ fontSize: '0.7rem' }}
+                                >
+                                  {isActing ? '…' : 'Mark Paid'}
+                                </button>
+                              )}
+                              <button
+                                className="btn-xs"
+                                onClick={() => navigate('/payments')}
+                                style={{ fontSize: '0.7rem' }}
+                              >
+                                Payments ↗
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                        {payErr && (
+                          <div style={{ color: '#dc2626', fontSize: '0.72rem', marginTop: '0.2rem' }}>{payErr}</div>
+                        )}
                       </div>
-                    )}
-                  </td>
-                  <td>{a.customerPhone}</td>
-                  <td>{a.staffMemberName ?? '—'}</td>
-                  <td>{a.businessServiceTitle ?? '—'}</td>
-                  <td>{a.requestedDate.split('T')[0]}</td>
-                  <td>{a.requestedTime}</td>
-                  <td>
-                    <span className={`status-badge status-${a.status.toLowerCase()}`}>
-                      {a.status}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-                      <button
-                        className="btn-xs edit"
-                        onClick={() => openEdit(a)}
-                      >
-                        Edit
-                      </button>
-                      <select
-                        className="status-select"
-                        value={a.status}
-                        disabled={updatingIds.has(a.id)}
-                        onChange={e => handleStatusChange(a, e.target.value)}
-                      >
-                        {VALID_STATUSES.map(s => (
-                          <option key={s} value={s}>{s}</option>
-                        ))}
-                      </select>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                        <button
+                          className="btn-xs edit"
+                          onClick={() => openEdit(a)}
+                        >
+                          Edit
+                        </button>
+                        <select
+                          className="status-select"
+                          value={a.status}
+                          disabled={updatingIds.has(a.id)}
+                          onChange={e => handleStatusChange(a, e.target.value)}
+                        >
+                          {VALID_STATUSES.map(s => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

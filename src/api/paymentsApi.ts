@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import type { Payment, MarkFailedRequest, MarkRefundedRequest } from '../types/payment';
+import type { Payment, MarkFailedRequest, MarkRefundedRequest, CreatePaymentRequest } from '../types/payment';
 
 export interface PaymentFilters {
   status?: string;
@@ -21,3 +21,9 @@ export const markPaymentFailed = (id: number, data: MarkFailedRequest) =>
 
 export const markPaymentRefunded = (id: number, data: MarkRefundedRequest) =>
   apiClient.patch<Payment>(`/api/admin/payments/${id}/mark-refunded`, data);
+
+export const getAppointmentPayments = (appointmentId: number) =>
+  apiClient.get<Payment[]>(`/api/admin/appointments/${appointmentId}/payments`);
+
+export const createAppointmentPayment = (appointmentId: number, data: CreatePaymentRequest) =>
+  apiClient.post<Payment>(`/api/admin/appointments/${appointmentId}/payments`, data);

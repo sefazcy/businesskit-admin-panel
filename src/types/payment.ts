@@ -24,3 +24,8 @@ export interface MarkFailedRequest {
 export interface MarkRefundedRequest {
   notes: string | null;
 }
+
+export interface CreatePaymentRequest {
+  amount: number;
+  currency: string;
+}
