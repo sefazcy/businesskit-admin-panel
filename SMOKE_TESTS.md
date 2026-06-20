@@ -1386,6 +1386,58 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 
 ---
 
+## v5.5 — Dashboard Payment Date Filters
+
+### Page load
+
+- [ ] Navigate to `/dashboard` — page loads without error
+- [ ] Payment Summary section shows range buttons: All time, Today, Last 7 days, This month, Custom
+- [ ] Default selected range is **This month** (indigo/filled button)
+- [ ] Network tab shows `GET /api/admin/payments/summary?fromDate=YYYY-MM-01&toDate=YYYY-MM-DD` on first load
+
+### Range buttons
+
+- [ ] Clicking **All time** sends `GET /api/admin/payments/summary` with no date params; counts and table update
+- [ ] Clicking **Today** sends `GET /api/admin/payments/summary?fromDate=<today>&toDate=<today>`
+- [ ] Clicking **Last 7 days** sends `?fromDate=<6 days ago>&toDate=<today>`
+- [ ] Clicking **This month** sends `?fromDate=<first day of current month>&toDate=<today>`
+- [ ] Selected button is visually highlighted (indigo background); others are white/outline
+- [ ] Each range change re-fetches only the payment summary — the rest of the dashboard does not reload
+
+### Custom range
+
+- [ ] Clicking **Custom** shows two date inputs (From and To) and an Apply button
+- [ ] Clicking Custom does NOT auto-trigger a fetch until Apply is clicked
+- [ ] Filling both dates and clicking Apply sends `?fromDate=...&toDate=...` and updates the summary
+- [ ] Filling only fromDate and clicking Apply sends only `?fromDate=...`
+- [ ] Filling only toDate sends only `?toDate=...`
+- [ ] Apply with both fields empty still calls the endpoint (no fromDate/toDate params)
+
+### Loading state
+
+- [ ] While the payment summary is fetching, "Loading…" text appears in the Payment Summary section
+- [ ] The rest of the dashboard (stat cards, Upcoming Appointments) remains visible during summary load
+
+### Error / fallback
+
+- [ ] Stop the backend, change range — "Payment summary unavailable." appears in the section
+- [ ] Other dashboard sections are unaffected
+- [ ] No crash or white screen
+
+### No regressions
+
+- [ ] All existing stat cards still render with correct data
+- [ ] Upcoming Appointments section still works
+- [ ] "View all" links navigate to correct pages
+- [ ] Payments page still loads and all actions work
+- [ ] Appointments page still loads with payment column intact
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+---
+
 ## v5.4 — Dashboard Payment Summary
 
 ### Page load

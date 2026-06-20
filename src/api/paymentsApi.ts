@@ -28,5 +28,11 @@ export const getAppointmentPayments = (appointmentId: number) =>
 export const createAppointmentPayment = (appointmentId: number, data: CreatePaymentRequest) =>
   apiClient.post<Payment>(`/api/admin/appointments/${appointmentId}/payments`, data);
 
-export const getPaymentSummary = () =>
-  apiClient.get<PaymentSummaryStats>('/api/admin/payments/summary');
+export const getPaymentSummary = (fromDate?: string, toDate?: string) => {
+  const params: Record<string, string> = {};
+  if (fromDate) params.fromDate = fromDate;
+  if (toDate) params.toDate = toDate;
+  return apiClient.get<PaymentSummaryStats>('/api/admin/payments/summary', {
+    params: Object.keys(params).length ? params : undefined,
+  });
+};

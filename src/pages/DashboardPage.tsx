@@ -3,17 +3,104 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { fetchDashboardData } from '../api/dashboardApi';
 import type { DashboardData } from '../api/dashboardApi';
+import { getPaymentSummary } from '../api/paymentsApi';
+import type { PaymentSummaryStats } from '../types/payment';
+
+type RangeKey = 'all' | 'today' | 'week' | 'month' | 'custom';
+
+const RANGE_LABELS: Record<RangeKey, string> = {
+  all: 'All time',
+  today: 'Today',
+  week: 'Last 7 days',
+  month: 'This month',
+  custom: 'Custom',
+};
+
+function toDateStr(d: Date): string {
+  return d.toISOString().split('T')[0];
+}
+
+function getRangeDates(range: RangeKey): { fromDate?: string; toDate?: string } {
+  const today = new Date();
+  const todayStr = toDateStr(today);
+
+  if (range === 'today') return { fromDate: todayStr, toDate: todayStr };
+
+  if (range === 'week') {
+    const weekAgo = new Date(today);
+    weekAgo.setDate(today.getDate() - 6);
+    return { fromDate: toDateStr(weekAgo), toDate: todayStr };
+  }
+
+  if (range === 'month') {
+    const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    return { fromDate: toDateStr(firstOfMonth), toDate: todayStr };
+  }
+
+  return {};
+}
+
+const RANGE_BTN: React.CSSProperties = {
+  padding: '0.2rem 0.65rem',
+  fontSize: '0.775rem',
+  borderRadius: '4px',
+  border: '1px solid #d1d5db',
+  background: 'white',
+  color: '#374151',
+  cursor: 'pointer',
+  fontWeight: 400,
+  lineHeight: 1.4,
+};
+
+const RANGE_BTN_ACTIVE: React.CSSProperties = {
+  ...RANGE_BTN,
+  border: '1px solid #4f46e5',
+  background: '#4f46e5',
+  color: 'white',
+  fontWeight: 600,
+};
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [paymentSummary, setPaymentSummary] = useState<PaymentSummaryStats | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState(false);
+
+  const [selectedRange, setSelectedRange] = useState<RangeKey>('month');
+  const [customFrom, setCustomFrom] = useState('');
+  const [customTo, setCustomTo] = useState('');
+
   useEffect(() => {
     fetchDashboardData()
       .then(setData)
       .finally(() => setLoading(false));
   }, []);
+
+  const fetchSummary = (fromDate?: string, toDate?: string) => {
+    setSummaryLoading(true);
+    setSummaryError(false);
+    getPaymentSummary(fromDate, toDate)
+      .then(({ data: d }) => setPaymentSummary(d))
+      .catch(() => { setSummaryError(true); setPaymentSummary(null); })
+      .finally(() => setSummaryLoading(false));
+  };
+
+  useEffect(() => {
+    if (selectedRange === 'custom') return;
+    const { fromDate, toDate } = getRangeDates(selectedRange);
+    fetchSummary(fromDate, toDate);
+  }, [selectedRange]);
+
+  const handleRangeChange = (range: RangeKey) => {
+    setSelectedRange(range);
+  };
+
+  const applyCustomRange = () => {
+    fetchSummary(customFrom || undefined, customTo || undefined);
+  };
 
   if (loading) {
     return (
@@ -114,37 +201,78 @@ export default function DashboardPage() {
             View all
           </Link>
         </div>
-        {data?.paymentSummary ? (
+
+        {/* Range selector */}
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', margin: '0.6rem 0 0.25rem' }}>
+          {(Object.keys(RANGE_LABELS) as RangeKey[]).map(r => (
+            <button
+              key={r}
+              style={selectedRange === r ? RANGE_BTN_ACTIVE : RANGE_BTN}
+              onClick={() => handleRangeChange(r)}
+            >
+              {RANGE_LABELS[r]}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom date inputs */}
+        {selectedRange === 'custom' && (
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', margin: '0.5rem 0', flexWrap: 'wrap' }}>
+            <input
+              type="date"
+              value={customFrom}
+              onChange={e => setCustomFrom(e.target.value)}
+              style={{ fontSize: '0.8rem', padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+            />
+            <span style={{ color: '#6b7280', fontSize: '0.8rem' }}>to</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={e => setCustomTo(e.target.value)}
+              style={{ fontSize: '0.8rem', padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
+            />
+            <button className="btn-xs" onClick={applyCustomRange}>Apply</button>
+          </div>
+        )}
+
+        {/* Summary content */}
+        {summaryLoading ? (
+          <div style={{ color: '#9ca3af', fontSize: '0.875rem', padding: '0.5rem 0' }}>Loading…</div>
+        ) : summaryError || !paymentSummary ? (
+          <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '0.5rem 0' }}>
+            Payment summary unavailable.
+          </p>
+        ) : (
           <>
-            <div className="dashboard-cards" style={{ marginTop: '0.75rem', marginBottom: '1rem' }}>
+            <div className="dashboard-cards" style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
               <div className="card">
                 <div className="card-title">Total</div>
-                <div className="card-stat">{data.paymentSummary.totalCount}</div>
+                <div className="card-stat">{paymentSummary.totalCount}</div>
               </div>
               <div className="card">
                 <div className="card-title">Paid</div>
-                <div className={`card-stat${data.paymentSummary.paidCount > 0 ? ' card-active' : ''}`}>
-                  {data.paymentSummary.paidCount}
+                <div className={`card-stat${paymentSummary.paidCount > 0 ? ' card-active' : ''}`}>
+                  {paymentSummary.paidCount}
                 </div>
               </div>
               <div className="card">
                 <div className="card-title">Pending</div>
-                <div className={`card-stat${data.paymentSummary.pendingCount > 0 ? ' stat-pending' : ''}`}>
-                  {data.paymentSummary.pendingCount}
+                <div className={`card-stat${paymentSummary.pendingCount > 0 ? ' stat-pending' : ''}`}>
+                  {paymentSummary.pendingCount}
                 </div>
               </div>
               <div className="card">
                 <div className="card-title">Failed</div>
-                <div className={`card-stat${data.paymentSummary.failedCount > 0 ? ' stat-offline' : ''}`}>
-                  {data.paymentSummary.failedCount}
+                <div className={`card-stat${paymentSummary.failedCount > 0 ? ' stat-offline' : ''}`}>
+                  {paymentSummary.failedCount}
                 </div>
               </div>
               <div className="card">
                 <div className="card-title">Refunded</div>
-                <div className="card-stat">{data.paymentSummary.refundedCount}</div>
+                <div className="card-stat">{paymentSummary.refundedCount}</div>
               </div>
             </div>
-            {data.paymentSummary.totalsByCurrency.length > 0 && (
+            {paymentSummary.totalsByCurrency.length > 0 && (
               <div className="table-container">
                 <table className="data-table">
                   <thead>
@@ -158,7 +286,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.paymentSummary.totalsByCurrency.map(c => (
+                    {paymentSummary.totalsByCurrency.map(c => (
                       <tr key={c.currency}>
                         <td><strong>{c.currency}</strong></td>
                         <td style={{ color: '#166534' }}>{Number(c.paidAmount).toFixed(2)}</td>
@@ -177,10 +305,6 @@ export default function DashboardPage() {
               </div>
             )}
           </>
-        ) : (
-          <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '0.5rem 0' }}>
-            Payment summary unavailable.
-          </p>
         )}
       </div>
 

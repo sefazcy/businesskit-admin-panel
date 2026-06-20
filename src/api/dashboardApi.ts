@@ -1,6 +1,5 @@
 import apiClient from './apiClient';
 import type { AppointmentStats, Appointment } from '../types/appointment';
-import type { PaymentSummaryStats } from '../types/payment';
 import { getAppointmentStats, getUpcomingAppointments } from './appointmentsApi';
 import { getAllStaff } from './staffApi';
 import { getAllServices } from './servicesApi';
@@ -8,7 +7,6 @@ import { getAllBlogPosts } from './blogApi';
 import { getAllGalleryItems } from './galleryApi';
 import { getAllMessages } from './contactMessagesApi';
 import { getSettings } from './businessSettingsApi';
-import { getPaymentSummary } from './paymentsApi';
 
 export interface DashboardData {
   healthOk: boolean | null;
@@ -20,7 +18,6 @@ export interface DashboardData {
   activeGalleryCount: number | null;
   unreadMessagesCount: number | null;
   settingsConfigured: boolean | null;
-  paymentSummary: PaymentSummaryStats | null;
 }
 
 export async function fetchDashboardData(): Promise<DashboardData> {
@@ -34,7 +31,6 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     galleryResult,
     messagesResult,
     settingsResult,
-    paymentSummaryResult,
   ] = await Promise.allSettled([
     apiClient.get('/api/health'),
     getAppointmentStats(),
@@ -45,7 +41,6 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     getAllGalleryItems({ isActive: true }),
     getAllMessages({ unreadOnly: true }),
     getSettings(),
-    getPaymentSummary(),
   ]);
 
   return {
@@ -69,9 +64,6 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       : null,
     settingsConfigured: settingsResult.status === 'fulfilled'
       ? settingsResult.value !== null
-      : null,
-    paymentSummary: paymentSummaryResult.status === 'fulfilled'
-      ? paymentSummaryResult.value.data
       : null,
   };
 }
