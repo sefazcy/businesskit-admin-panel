@@ -11,12 +11,14 @@ import { getCustomers } from '../api/customersApi';
 import { getAllStaff } from '../api/staffApi';
 import { getAllServices } from '../api/servicesApi';
 import { getAppointmentPayments, createAppointmentPayment, markPaymentPaid } from '../api/paymentsApi';
+import { getSettings } from '../api/businessSettingsApi';
 import { extractError } from '../utils/extractError';
 import type { Customer } from '../types/customer';
 
 const STATUS_OPTIONS = ['', 'Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const VALID_STATUSES = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
-const DEFAULT_PAYMENT_CURRENCY = 'TRY';
+const FALLBACK_CURRENCY = 'TRY';
+const VALID_CURRENCIES = new Set(['TRY', 'USD', 'EUR', 'GBP']);
 
 const EMPTY_EDIT_FORM = {
   customerFullName: '',
@@ -69,11 +71,19 @@ export default function AppointmentsPage() {
   const [appointmentPayments, setAppointmentPayments] = useState<Record<number, PaymentState>>({});
   const [paymentActionIds, setPaymentActionIds] = useState<Set<number>>(new Set<number>());
   const [paymentErrors, setPaymentErrors] = useState<Record<number, string>>({});
+  const [paymentCurrency, setPaymentCurrency] = useState(FALLBACK_CURRENCY);
 
   useEffect(() => {
     getAllStaff().then(({ data }) => setStaffList(data)).catch(() => {});
     getAllServices().then(({ data }) => setServiceList(data)).catch(() => {});
     getCustomers({ includeArchived: false }).then(({ data }) => setCustomerList(data)).catch(() => {});
+    getSettings()
+      .then(settings => {
+        if (settings && VALID_CURRENCIES.has(settings.currency)) {
+          setPaymentCurrency(settings.currency);
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const loadPaymentForAppointment = (appointmentId: number) => {
@@ -223,7 +233,7 @@ export default function AppointmentsPage() {
 
     setPaymentActionIds(prev => new Set([...prev, appointment.id]));
     try {
-      await createAppointmentPayment(appointment.id, { amount, currency: DEFAULT_PAYMENT_CURRENCY });
+      await createAppointmentPayment(appointment.id, { amount, currency: paymentCurrency });
       loadPaymentForAppointment(appointment.id);
     } catch (err) {
       setPaymentErrors(prev => ({ ...prev, [appointment.id]: extractError(err) }));
@@ -607,8 +617,9 @@ export default function AppointmentsPage() {
                               disabled={isActing}
                               onClick={() => handleCreatePayment(a)}
                               style={{ fontSize: '0.7rem' }}
+                              title={`Create payment in ${paymentCurrency}`}
                             >
-                              {isActing ? '…' : 'Create'}
+                              {isActing ? '…' : `Create (${paymentCurrency})`}
                             </button>
                           </div>
                         )}

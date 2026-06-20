@@ -1386,6 +1386,41 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 
 ---
 
+## v5.2 — Payment Currency Consistency
+
+### Currency loaded from settings
+
+- [ ] Navigate to `/appointments` — on load, `GET /api/business-settings` is called once (visible in Network tab)
+- [ ] "Create" button on a no-payment row shows the current business currency in its label, e.g. `Create (EUR)` when settings currency is EUR
+- [ ] Hovering over the "Create" button shows tooltip `Create payment in EUR` (or whichever currency is configured)
+
+### Create Payment uses configured currency
+
+- [ ] Set Settings currency to **TRY**, go to Appointments, click "Create" on a row with no payment → created payment shows `TRY` currency badge
+- [ ] Set Settings currency to **EUR**, go to Appointments, click "Create" on a row with no payment → created payment shows `EUR` currency badge
+- [ ] Set Settings currency to **USD**, go to Appointments, click "Create" → created payment shows `USD` currency badge
+- [ ] Set Settings currency to **GBP**, go to Appointments, click "Create" → created payment shows `GBP` currency badge
+- [ ] Amount is still taken from the linked service price when available; otherwise `prompt()` is shown
+
+### Fallback behavior
+
+- [ ] Stop the backend before navigating to `/appointments` — page still loads (appointments fail gracefully); no crash from settings fetch failure
+- [ ] With backend stopped, "Create" button still renders showing `Create (TRY)` (fallback currency)
+- [ ] Existing payment records in the table always display their own stored currency (not the settings currency)
+
+### No regressions
+
+- [ ] "Mark Paid" still works on Pending payments
+- [ ] "Payments ↗" still navigates to `/payments`
+- [ ] Appointments page filters, status change, and edit panel all work as before
+- [ ] Payments page still works independently
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+---
+
 ## v5.0 — Settings currency select
 
 ### Settings page load
