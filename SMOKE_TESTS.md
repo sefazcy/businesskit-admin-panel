@@ -1386,6 +1386,50 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 
 ---
 
+## v5.4 — Dashboard Payment Summary
+
+### Page load
+
+- [ ] Navigate to `/dashboard` — page loads without error or white screen
+- [ ] Network tab shows a request to `GET /api/admin/payments/summary` on dashboard load
+- [ ] "Payment Summary" section heading is visible below the existing stat cards
+
+### Count cards
+
+- [ ] "Total" card shows the total payment count
+- [ ] "Paid" card shows the paid count; number is green when > 0
+- [ ] "Pending" card shows the pending count; number is amber when > 0
+- [ ] "Failed" card shows the failed count; number is red when > 0
+- [ ] "Refunded" card shows the refunded count
+
+### Currency breakdown table
+
+- [ ] Table is visible when `totalsByCurrency` is non-empty
+- [ ] Each row shows: Currency, Paid amount, Pending amount, Failed amount, Refunded amount, Total amount
+- [ ] Amounts are formatted with two decimal places (e.g. `1200.00`)
+- [ ] Paid amount column is green; Pending is amber when > 0; Failed is red when > 0
+- [ ] "View all" link in the section header navigates to `/payments`
+
+### Fallback / error handling
+
+- [ ] Stop the backend before loading `/dashboard` — a "Payment summary unavailable." message appears in the Payment Summary section instead of the table
+- [ ] All other dashboard sections (stat cards, Upcoming Appointments) still render even when payment summary fails
+- [ ] No crash or white screen when the summary endpoint returns an error
+
+### No regressions
+
+- [ ] Existing stat cards still appear: Backend, Today's Appointments, Pending, Upcoming 7 Days, Unread Messages, Active Staff, Active Services, Published Posts, Gallery Items, Settings
+- [ ] Upcoming Appointments section still shows the table or "No upcoming appointments."
+- [ ] Clicking any existing stat card still navigates to the correct page
+- [ ] Payments page (`/payments`) still loads and actions still work
+- [ ] Appointments page still loads with payment column intact
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+---
+
 ## v5.2 — Payment Currency Consistency
 
 ### Currency loaded from settings

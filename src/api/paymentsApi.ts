@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import type { Payment, MarkFailedRequest, MarkRefundedRequest, CreatePaymentRequest } from '../types/payment';
+import type { Payment, MarkFailedRequest, MarkRefundedRequest, CreatePaymentRequest, PaymentSummaryStats } from '../types/payment';
 
 export interface PaymentFilters {
   status?: string;
@@ -27,3 +27,6 @@ export const getAppointmentPayments = (appointmentId: number) =>
 
 export const createAppointmentPayment = (appointmentId: number, data: CreatePaymentRequest) =>
   apiClient.post<Payment>(`/api/admin/appointments/${appointmentId}/payments`, data);
+
+export const getPaymentSummary = () =>
+  apiClient.get<PaymentSummaryStats>('/api/admin/payments/summary');

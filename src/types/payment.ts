@@ -29,3 +29,21 @@ export interface CreatePaymentRequest {
   amount: number;
   currency: string;
 }
+
+export interface PaymentCurrencySummary {
+  currency: string;
+  pendingAmount: number;
+  paidAmount: number;
+  failedAmount: number;
+  refundedAmount: number;
+  totalAmount: number;
+}
+
+export interface PaymentSummaryStats {
+  totalCount: number;
+  pendingCount: number;
+  paidCount: number;
+  failedCount: number;
+  refundedCount: number;
+  totalsByCurrency: PaymentCurrencySummary[];
+}
