@@ -1327,3 +1327,56 @@ These are documented limitations accepted for v3.0 MVP. They are not bugs.
 - No date range filter
 - No search by amount or provider
 - Real payment provider integration (Stripe, etc.) is not implemented; only Manual provider is supported
+
+---
+
+## v5.0 — Settings currency select
+
+### Settings page load
+
+- [ ] Navigate to `/settings` — page loads without error
+- [ ] Currency field is a **select dropdown**, not a free-text input
+- [ ] Dropdown shows exactly four options:
+  - `TRY — Turkish Lira`
+  - `USD — US Dollar`
+  - `EUR — Euro`
+  - `GBP — British Pound`
+- [ ] The currently saved currency is pre-selected in the dropdown
+- [ ] All other fields (Business Name, Phone, Email, Address, Working Hours, social links, Theme Color) load correctly and are unchanged
+
+### Saving valid currencies
+
+- [ ] Select **TRY**, click "Save Settings" → 200, success banner appears, dropdown still shows TRY
+- [ ] Select **USD**, click "Save Settings" → 200, success banner appears, dropdown shows USD
+- [ ] Select **EUR**, click "Save Settings" → 200, success banner appears, dropdown shows EUR
+- [ ] Select **GBP**, click "Save Settings" → 200, success banner appears, dropdown shows GBP
+- [ ] Verify via `GET /api/business-settings` (public) that the stored value matches what was selected
+
+### Invalid old backend value (pre-v4.9 data)
+
+If `BusinessSettings.Currency` contains `"USDEWQ"` (or any value not in TRY/USD/EUR/GBP):
+
+- [ ] Settings page loads **without crashing** or showing a white screen
+- [ ] An amber warning appears below the currency select: "Current currency value is invalid. Please select a valid currency."
+- [ ] The select **defaults to TRY** (safe fallback — not "USDEWQ" which is not a valid option)
+- [ ] Clicking "Save Settings" without changing the select saves **TRY** (not the invalid old value)
+- [ ] After a successful save, the warning disappears
+
+### Backend error display
+
+- [ ] If the backend returns 400 (or any error), the error message is shown in the red alert banner above the form
+- [ ] The form fields retain their values — nothing is reset
+- [ ] The "Save Settings" button re-enables after the failure so the admin can retry
+
+### Other settings fields (regression)
+
+- [ ] Change Business Name, click Save → saved correctly; currency field is unchanged
+- [ ] Change Phone, Email, Address → saved correctly
+- [ ] Change Working Hours → saved correctly
+- [ ] Change social link fields (Instagram, LinkedIn, Facebook, Twitter, WhatsApp) → saved correctly
+- [ ] Change Theme Color → saved correctly
+- [ ] No field other than Currency was changed to a select (all others remain text inputs / textareas)
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings

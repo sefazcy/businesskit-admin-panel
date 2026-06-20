@@ -1,8 +1,22 @@
 import { useEffect, useState } from 'react';
-import type { FormEvent } from 'react';
 import type { BusinessSettings, UpdateBusinessSettingsRequest } from '../types/businessSettings';
 import { getSettings, updateSettings } from '../api/businessSettingsApi';
 import { extractError } from '../utils/extractError';
+
+const ALLOWED_CURRENCIES = [
+  { code: 'TRY', label: 'TRY — Turkish Lira' },
+  { code: 'USD', label: 'USD — US Dollar' },
+  { code: 'EUR', label: 'Euro' },
+  { code: 'GBP', label: 'GBP — British Pound' },
+] as const;
+
+type CurrencyCode = typeof ALLOWED_CURRENCIES[number]['code'];
+
+const VALID_CODES = ALLOWED_CURRENCIES.map(c => c.code) as string[];
+
+function isValidCurrency(code: string): code is CurrencyCode {
+  return VALID_CODES.includes(code);
+}
 
 const EMPTY_FORM = {
   businessName: '',
@@ -17,7 +31,7 @@ const EMPTY_FORM = {
   twitter: '',
   website: '',
   workingHours: '',
-  currency: 'USD',
+  currency: 'TRY',
   themeColor: '',
 };
 
@@ -35,7 +49,7 @@ function formFromSettings(s: BusinessSettings): typeof EMPTY_FORM {
     twitter: s.twitter ?? '',
     website: s.website ?? '',
     workingHours: s.workingHours ?? '',
-    currency: s.currency,
+    currency: isValidCurrency(s.currency) ? s.currency : 'TRY',
     themeColor: s.themeColor ?? '',
   };
 }
@@ -48,6 +62,7 @@ export default function SettingsPage() {
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [currencyInvalid, setCurrencyInvalid] = useState(false);
 
   useEffect(() => {
     setPageLoading(true);
@@ -55,6 +70,7 @@ export default function SettingsPage() {
     getSettings()
       .then(data => {
         if (data) {
+          setCurrencyInvalid(!isValidCurrency(data.currency));
           setForm(formFromSettings(data));
           setUpdatedAt(data.updatedAt);
         }
@@ -66,9 +82,10 @@ export default function SettingsPage() {
   const setField = (field: keyof typeof EMPTY_FORM, value: string) => {
     setForm(f => ({ ...f, [field]: value }));
     setSaveSuccess(false);
+    if (field === 'currency') setCurrencyInvalid(false);
   };
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = async (e: { preventDefault(): void }) => {
     e.preventDefault();
     setSaveError('');
     setSaveSuccess(false);
@@ -77,16 +94,12 @@ export default function SettingsPage() {
       setSaveError('Business Name is required.');
       return;
     }
-    if (!form.currency.trim()) {
-      setSaveError('Currency is required.');
-      return;
-    }
 
     setSaveLoading(true);
 
     const payload: UpdateBusinessSettingsRequest = {
       businessName: form.businessName.trim(),
-      currency: form.currency.trim() || 'USD',
+      currency: form.currency,
       logoUrl: form.logoUrl.trim() || null,
       phone: form.phone.trim() || null,
       email: form.email.trim() || null,
@@ -103,6 +116,7 @@ export default function SettingsPage() {
 
     try {
       const { data } = await updateSettings(payload);
+      setCurrencyInvalid(false);
       setForm(formFromSettings(data));
       setUpdatedAt(data.updatedAt);
       setSaveSuccess(true);
@@ -176,15 +190,21 @@ export default function SettingsPage() {
             </div>
             <div className="form-group">
               <label htmlFor="s-currency">Currency *</label>
-              <input
+              <select
                 id="s-currency"
-                type="text"
                 value={form.currency}
                 onChange={e => setField('currency', e.target.value)}
                 required
-                maxLength={10}
-                placeholder="USD"
-              />
+              >
+                {ALLOWED_CURRENCIES.map(({ code, label }) => (
+                  <option key={code} value={code}>{label}</option>
+                ))}
+              </select>
+              {currencyInvalid && (
+                <p className="field-warning">
+                  Current currency value is invalid. Please select a valid currency.
+                </p>
+              )}
             </div>
           </div>
           <div className="form-grid" style={{ gridTemplateColumns: '1fr' }}>
