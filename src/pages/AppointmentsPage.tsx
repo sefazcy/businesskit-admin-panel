@@ -637,7 +637,7 @@ export default function AppointmentsPage() {
                               </span>
                             </div>
                             <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap', marginTop: '0.2rem', alignItems: 'center' }}>
-                              {latest.status === 'Pending' && (
+                              {latest.status === 'Pending' && latest.provider === 'Manual' && (
                                 <button
                                   className="btn-xs activate"
                                   disabled={isActing}
@@ -646,6 +646,11 @@ export default function AppointmentsPage() {
                                 >
                                   {isActing ? '…' : 'Mark Paid'}
                                 </button>
+                              )}
+                              {latest.status === 'Pending' && latest.provider !== 'Manual' && (
+                                <span style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                                  Awaiting callback
+                                </span>
                               )}
                               <button
                                 className="btn-xs"

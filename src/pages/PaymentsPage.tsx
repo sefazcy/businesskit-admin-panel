@@ -256,8 +256,9 @@ export default function PaymentsPage() {
                     {formatDateTime(p.createdAt)}
                   </td>
                   <td>
-                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                      {p.status === 'Pending' && (
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                      {/* Manual provider — full action set */}
+                      {p.provider === 'Manual' && p.status === 'Pending' && (
                         <>
                           <button
                             className="btn-xs activate"
@@ -275,13 +276,24 @@ export default function PaymentsPage() {
                           </button>
                         </>
                       )}
-                      {p.status === 'Paid' && (
+                      {p.provider === 'Manual' && p.status === 'Paid' && (
                         <button
                           className="btn-xs deactivate"
                           onClick={() => openPanel(p.id, 'refunded')}
                         >
                           Mark Refunded
                         </button>
+                      )}
+                      {/* Iyzico provider — informational hints only */}
+                      {p.provider === 'Iyzico' && p.status === 'Pending' && (
+                        <span style={{ fontSize: '0.72rem', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                          Awaiting callback
+                        </span>
+                      )}
+                      {p.provider === 'Iyzico' && p.status === 'Paid' && (
+                        <span style={{ fontSize: '0.72rem', color: '#6b7280', whiteSpace: 'nowrap' }}>
+                          Refund not available
+                        </span>
                       )}
                     </div>
                   </td>

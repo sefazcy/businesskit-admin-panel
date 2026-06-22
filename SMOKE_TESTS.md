@@ -1567,3 +1567,48 @@ If `BusinessSettings.Currency` contains `"USDEWQ"` (or any value not in TRY/USD/
 ### Build
 
 - [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+---
+
+## v6.2 — Payment Admin Safety and UX Cleanup
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Payments page — Manual provider actions (no regression)
+
+- [ ] Navigate to `/payments`
+- [ ] Locate a **Manual + Pending** payment row — Actions column shows **"Mark Paid"** and **"Mark Failed"** buttons
+- [ ] Click "Mark Paid" — row status badge changes to **Paid** without page reload
+- [ ] Locate a fresh **Manual + Pending** payment — click "Mark Failed" — inline panel opens, submit → status badge changes to **Failed**
+- [ ] Locate a **Manual + Paid** payment — Actions column shows **"Mark Refunded"** button
+- [ ] Click "Mark Refunded" — inline panel opens, submit → status badge changes to **Refunded**
+
+### Payments page — Iyzico provider (no unsafe buttons)
+
+- [ ] Locate an **Iyzico + Pending** payment row — Actions column shows **"Awaiting callback"** hint text, no buttons
+- [ ] Locate an **Iyzico + Paid** payment row — Actions column shows **"Refund not available"** hint text, no buttons
+- [ ] Locate an **Iyzico + Failed** payment row — Actions column shows nothing (no buttons, no hint)
+- [ ] No "Mark Paid", "Mark Failed", or "Mark Refunded" buttons appear for any Iyzico payment
+
+### Payments page — backend error display
+
+- [ ] If the backend returns 400 for a blocked action, the error banner appears above the table with the exact backend message
+- [ ] Error banner can be dismissed with the ✕ button
+
+### Appointments page — inline payment column (provider-aware)
+
+- [ ] Navigate to `/appointments`
+- [ ] Locate an appointment whose latest payment is **Manual + Pending** — payment column shows **"Mark Paid"** button
+- [ ] Click "Mark Paid" in the appointments row — payment reloads and shows **Paid** badge; button disappears
+- [ ] Locate an appointment whose latest payment is **Iyzico + Pending** — payment column shows **"Awaiting callback"** text instead of "Mark Paid" button
+- [ ] **"Payments ↗"** link still appears for all rows that have a payment (regardless of provider)
+- [ ] Appointments page still loads with payment column intact
+
+### No regressions
+
+- [ ] Payments page loads, status filter works, table renders
+- [ ] Payment summary stats on Dashboard still load
+- [ ] Creating a payment from the Appointments page still works (Manual provider)
+- [ ] Sidebar navigation, login, logout all unaffected
