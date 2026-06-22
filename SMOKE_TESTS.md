@@ -1762,3 +1762,87 @@ No backend changes were required.
 - [ ] Dashboard payment summary still loads
 - [ ] Appointments page payment column (Manual) still works
 - [ ] Sidebar, login, logout unaffected
+
+---
+
+## Products (v7.1 — Product Management UI)
+
+### Build
+
+- [ ] `npm run build` completes with 0 TypeScript errors and 0 Vite warnings
+
+### Navigation
+
+- [ ] Sidebar shows **Products** link between Payments and Settings
+- [ ] Clicking **Products** navigates to `/products` and highlights the nav link
+- [ ] Refreshing at `/products` stays on the page (not redirected)
+- [ ] Navigating away and back preserves the route correctly
+
+### Product list — initial load
+
+- [ ] `/products` loads with a loading state, then shows the table or empty state
+- [ ] If no products exist: "No products found." message is shown
+- [ ] If products exist: table renders with columns ID / Name / SKU / Category / Unit / Stock / Min / Cost / Sale / Status / Stock Level / Actions
+- [ ] Each row shows the correct **Status** badge (green Active / red Inactive)
+- [ ] Each row shows a **Stock Level** badge: amber **Low Stock** when `isLowStock` is true, green **OK** when false
+- [ ] SKU and Category cells show `—` when the field is null
+
+### Filters
+
+- [ ] **Search** input: typing "espresso" filters rows matching name, SKU, or category (re-fetches from backend)
+- [ ] **Category** select: populated from the backend categories endpoint; selecting a category filters the list
+- [ ] **Status** select: "Active" shows only active products; "Inactive" shows only inactive; "All" shows both
+- [ ] **Low Stock Only** checkbox: shows only products where `isLowStock` is true
+- [ ] **Clear** button appears when any filter is active; clicking it resets all filters and reloads the full list
+- [ ] Filters can be combined (e.g. search + lowStockOnly)
+
+### Create product
+
+- [ ] **Add Product** button is shown when form is not open
+- [ ] Clicking **Add Product** opens the form panel with title "Add Product"
+- [ ] Form fields: Name *, SKU, Category, Unit *, Current Stock, Min Stock, Cost Price, Sale Price, Notes, Active checkbox
+- [ ] **Active** checkbox is shown and checked by default on create
+- [ ] Submitting with empty **Name** → browser validation prevents submit
+- [ ] Submitting with empty **Unit** → browser validation prevents submit
+- [ ] Submitting a valid form → 201 from backend, form closes, product appears in list
+- [ ] Newly created product appears with correct values in the table
+- [ ] **Cancel** button closes the form without saving
+
+### Duplicate SKU error
+
+- [ ] Create a product with SKU "SKU-001"
+- [ ] Try to create another product with SKU "SKU-001" → form stays open, error message appears in the alert box
+- [ ] Error message contains "already exists" (from backend 409 response)
+- [ ] Page does not crash or navigate away
+
+### Edit product
+
+- [ ] Clicking **Edit** on a row opens the form panel with title "Edit Product"
+- [ ] Form is pre-filled with the selected product's current values
+- [ ] Changing **Name**, **Category**, **Cost Price**, **Sale Price**, and saving → 200 from backend, table row updates
+- [ ] **Active** checkbox is shown and reflects current `isActive` value during edit
+- [ ] Unchecking **Active** and saving deactivates the product (row shows red "Inactive" badge)
+- [ ] Saving with duplicate SKU (of another product) → 409 error shown in form, page does not crash
+
+### Toggle active
+
+- [ ] Clicking **Deactivate** on an active product → row updates in-place to show "Inactive" badge
+- [ ] Clicking **Activate** on an inactive product → row updates in-place to show "Active" badge
+- [ ] No full page reload — only the affected row changes
+- [ ] If toggle fails (e.g. network error) → error message appears above the table
+
+### Low Stock badge
+
+- [ ] Create product with `currentStock: 5`, `minStock: 10` → row shows amber **Low Stock** badge
+- [ ] Create product with `currentStock: 15`, `minStock: 10` → row shows green **OK** badge
+- [ ] Create product with `currentStock: 0`, `minStock: 0` → row shows green **OK** (minStock = 0 means no threshold)
+- [ ] Filter **Low Stock Only** → only rows with **Low Stock** badge are shown
+
+### No regressions
+
+- [ ] Payments page (`/payments`) still loads and functions normally
+- [ ] Services page (`/services`) still loads and functions normally
+- [ ] Appointments page (`/appointments`) still loads and functions normally
+- [ ] Dashboard still loads
+- [ ] Login / logout unaffected
+

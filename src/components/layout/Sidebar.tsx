@@ -19,6 +19,7 @@ export default function Sidebar() {
         <NavLink to="/gallery" className={activeClass}>Gallery</NavLink>
         <NavLink to="/messages" className={activeClass}>Messages</NavLink>
         <NavLink to="/payments" className={activeClass}>Payments</NavLink>
+        <NavLink to="/products" className={activeClass}>Products</NavLink>
         <NavLink to="/settings" className={activeClass}>Settings</NavLink>
       </nav>
     </aside>
