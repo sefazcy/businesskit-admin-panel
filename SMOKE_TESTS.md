@@ -1713,3 +1713,52 @@ No backend changes were required.
 - [ ] Dashboard payment summary still loads
 - [ ] Appointments page payment column unaffected
 - [ ] `npm run build` still passes with zero errors
+
+---
+
+## v6.5 — Production Readiness and Refund Strategy
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Iyzico Paid detail page — refund strategy message
+
+- [ ] Navigate to `/payments/{id}` for an **Iyzico + Paid** payment
+- [ ] Actions section shows: `"Refund not implemented. Process refunds through the Iyzico merchant dashboard."`
+- [ ] **No "Mark Refunded" button** is present anywhere on the detail page for Iyzico payments
+- [ ] **No fake refund button** exists (not hidden behind a flag or in a disabled state)
+
+### Iyzico Pending detail page — no unsafe actions
+
+- [ ] Navigate to `/payments/{id}` for an **Iyzico + Pending** payment
+- [ ] Actions section shows: `"Waiting for provider callback. This payment will update automatically…"`
+- [ ] **No "Mark Paid" button** is present for Iyzico Pending payments
+- [ ] **No "Mark Failed" button** is present for Iyzico Pending payments
+
+### Manual Paid detail page — Mark Refunded still available
+
+- [ ] Navigate to `/payments/{id}` for a **Manual + Paid** payment
+- [ ] Actions section shows "Mark Refunded" button (outline style)
+- [ ] Clicking "Mark Refunded" opens the inline panel with "Notes" textarea
+- [ ] Submitting → status updates to Refunded
+
+### Manual Pending detail page — Mark Paid / Mark Failed still available
+
+- [ ] Navigate to `/payments/{id}` for a **Manual + Pending** payment
+- [ ] "Mark Paid" (indigo button) and "Mark Failed" (outline button) are both shown
+- [ ] Clicking "Mark Paid" → status updates to Paid in-place
+
+### Payments list — provider-aware hints (no regression)
+
+- [ ] **Iyzico + Pending** row: shows "Awaiting callback" hint text; no action buttons
+- [ ] **Iyzico + Paid** row: shows "Refund not available" hint text; no action buttons
+- [ ] **Manual + Pending** row: shows "Mark Paid" and "Mark Failed" buttons
+- [ ] **Manual + Paid** row: shows "Mark Refunded" button
+
+### No regressions
+
+- [ ] All existing payment list actions (Manual) still work
+- [ ] Dashboard payment summary still loads
+- [ ] Appointments page payment column (Manual) still works
+- [ ] Sidebar, login, logout unaffected
