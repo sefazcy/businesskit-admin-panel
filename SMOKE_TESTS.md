@@ -1612,3 +1612,104 @@ If `BusinessSettings.Currency` contains `"USDEWQ"` (or any value not in TRY/USD/
 - [ ] Payment summary stats on Dashboard still load
 - [ ] Creating a payment from the Appointments page still works (Manual provider)
 - [ ] Sidebar navigation, login, logout all unaffected
+
+---
+
+## v6.4 — Payment detail and audit visibility
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Backend DTO (no changes needed)
+
+`GET /api/admin/payments/{id}` already returns the full `PaymentDto` with all fields:
+`id`, `appointmentId`, `customerId`, `amount`, `currency`, `status`, `provider`,
+`providerPaymentId`, `providerCheckoutUrl`, `paidAt`, `failedAt`, `refundedAt`,
+`failureReason`, `notes`, `createdAt`, `updatedAt`.
+No backend changes were required.
+
+### Payments list — clickable IDs
+
+- [ ] Navigate to `/payments`
+- [ ] Payment ID column shows IDs as **indigo links** (`.detail-link-id`)
+- [ ] Clicking a payment ID navigates to `/payments/{id}`
+- [ ] All other list behavior (filter, Mark Paid, Mark Failed, Mark Refunded, Iyzico hints) is unchanged
+
+### Payment detail page — load and navigation
+
+- [ ] Navigate directly to `/payments/{id}` in the browser (refresh works — route is registered)
+- [ ] Page shows "← Payments" back button; clicking it returns to `/payments`
+- [ ] Status badge visible in page header (top-right)
+- [ ] Page heading shows "Payment #{id}"
+- [ ] Sidebar still highlights "Payments" as active when on `/payments/{id}`
+
+### Payment detail page — Details section
+
+- [ ] Payment ID displayed
+- [ ] Appointment ID displayed as `#N`
+- [ ] Customer ID displayed (or `—` if null)
+- [ ] Amount and currency displayed (e.g. `150.00 TRY`)
+- [ ] Status displayed as colored badge
+- [ ] Provider displayed
+- [ ] Created At and Last Updated displayed as readable datetime
+- [ ] Paid At shown if payment is Paid (otherwise field absent)
+- [ ] Failed At shown if payment is Failed (otherwise field absent)
+- [ ] Refunded At shown if payment is Refunded (otherwise field absent)
+- [ ] Failure Reason shown if non-null, otherwise section absent
+- [ ] Notes shown if non-null, otherwise section absent
+- [ ] Provider Reference ID shown in monospace if non-null (Iyzico token), otherwise section absent
+- [ ] Checkout URL shown as a truncated external link (`↗`, opens new tab, `rel="noopener noreferrer"`) if non-null; full URL visible on hover via `title`; otherwise section absent
+- [ ] Long checkout URLs are truncated with ellipsis visually but href is always the full URL
+
+### Payment detail page — Timeline section
+
+- [ ] "Created" event always present with `createdAt` timestamp
+- [ ] "Paid" event present only if `paidAt` is set
+- [ ] "Failed" event present only if `failedAt` is set
+- [ ] "Refunded" event present only if `refundedAt` is set
+- [ ] Events are sorted chronologically (oldest first)
+- [ ] Each timeline item has label (bold) + timestamp side-by-side with left indigo border
+
+### Payment detail page — Actions section (Manual provider)
+
+- [ ] **Manual + Pending**: "Mark Paid" (indigo button) and "Mark Failed" (outline button) are shown
+  - Click "Mark Paid" → payment status updates in-place to Paid, Mark Paid button disappears
+  - Click "Mark Failed" → inline panel opens with "Failure Reason" textarea; submit → status updates to Failed
+  - Click "Cancel" in panel → panel closes without changes
+- [ ] **Manual + Paid**: "Mark Refunded" (outline button) is shown
+  - Click "Mark Refunded" → inline panel opens with "Notes" textarea; submit → status updates to Refunded
+- [ ] **Manual + Failed / Refunded / Cancelled**: "No further actions available for this payment." hint shown; no buttons
+- [ ] After a successful action the page stays on `/payments/{id}` (no redirect) and shows updated data
+
+### Payment detail page — Actions section (Iyzico provider)
+
+- [ ] **Iyzico + Pending**: No buttons shown; hint text: "Waiting for provider callback. This payment will update automatically…"
+- [ ] **Iyzico + Paid**: No buttons shown; hint text: "Refund not implemented. Process refunds through the Iyzico merchant dashboard."
+- [ ] **Iyzico + Failed / Refunded / Cancelled**: "No further actions available for this payment." shown; no buttons
+- [ ] No "Mark Paid", "Mark Failed", or "Mark Refunded" buttons appear for any Iyzico payment on this page
+
+### Payment detail page — unknown provider
+
+- [ ] If provider is neither Manual nor Iyzico, Actions shows: "Manual status changes are not supported for '{provider}' payments."
+
+### Payment detail page — action errors
+
+- [ ] If backend returns 400 (e.g. attempting a blocked action), the error banner appears at the top with the exact backend message
+- [ ] Error banner can be dismissed with the ✕ button
+- [ ] After dismissing error, page data remains visible and unchanged
+
+### Payment detail page — not found / bad ID
+
+- [ ] Navigate to `/payments/99999` (non-existent id) → error message shown: "Payment not found or backend is unavailable."
+- [ ] "← Back to Payments" link is shown below the error
+- [ ] Navigate to `/payments/abc` (non-numeric id) → error: "Invalid payment ID."
+
+### No regressions
+
+- [ ] `/payments` list page loads normally with status filter
+- [ ] Manual payment actions on the list page (Mark Paid, Mark Failed, Mark Refunded) still work
+- [ ] Iyzico hint texts on list page still show; no unsafe buttons
+- [ ] Dashboard payment summary still loads
+- [ ] Appointments page payment column unaffected
+- [ ] `npm run build` still passes with zero errors

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
+import { Link } from 'react-router-dom';
 import type { Payment } from '../types/payment';
 import type { PaymentFilters } from '../api/paymentsApi';
 import {
@@ -228,7 +229,9 @@ export default function PaymentsPage() {
             <tbody>
               {payments.map(p => (
                 <tr key={p.id}>
-                  <td className="col-id">{p.id}</td>
+                  <td className="col-id">
+                    <Link to={`/payments/${p.id}`} className="detail-link-id">{p.id}</Link>
+                  </td>
                   <td>{p.appointmentId}</td>
                   <td>{p.customerId ?? '—'}</td>
                   <td style={{ whiteSpace: 'nowrap' }}>
