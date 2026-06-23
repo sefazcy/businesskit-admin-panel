@@ -1846,3 +1846,107 @@ No backend changes were required.
 - [ ] Dashboard still loads
 - [ ] Login / logout unaffected
 
+---
+
+## Stock Movements (v7.3 — Stock Movement UI)
+
+### Build
+
+- [ ] `npm run build` completes with 0 TypeScript errors and 0 Vite warnings
+
+### Products page still works
+
+- [ ] `/products` still loads the product list table with existing columns
+- [ ] **Add Product** button is still visible and creates a product correctly
+- [ ] **Edit** button on a row still opens the edit form and saves correctly
+- [ ] **Deactivate / Activate** button still toggles `isActive` in-place
+- [ ] Low Stock badge still shows amber **Low Stock** / green **OK** correctly
+
+### Stock button
+
+- [ ] Each product row has a purple **Stock** button in the Actions column
+- [ ] Clicking **Stock** on a product closes any open product form and opens the Move Stock panel above the table
+- [ ] The selected product row is visually highlighted (light purple background) while the panel is open
+- [ ] Clicking **Stock** on a different row switches the panel to that product
+
+### Move Stock panel — header
+
+- [ ] Panel title shows "Move Stock — {product name}"
+- [ ] Current stock and unit are shown read-only (e.g. "Current Stock: 10 cup")
+- [ ] Min stock is shown
+- [ ] If the product is low stock, the amber **Low Stock** badge appears in the header strip
+- [ ] SKU is shown if the product has one; not shown if null
+- [ ] **Close** button closes the panel and removes the row highlight
+
+### Move Stock panel — form
+
+- [ ] Type select shows three options: "In — add to stock", "Out — remove from stock", "Adjustment — set to value"
+- [ ] Quantity label changes to "New Stock Value *" when type is Adjustment
+- [ ] Quantity placeholder changes to "Final stock level" for Adjustment and "Amount to move" for In/Out
+- [ ] Adjustment type shows the helper text "Adjustment sets stock directly to the value you enter…"
+- [ ] Reason field (optional) accepts up to 150 characters
+- [ ] Notes field (optional) textarea accepts up to 1000 characters
+- [ ] Submit button label shows "Apply In (add to stock)" / "Apply Out (remove from stock)" / "Apply Adjustment (set to final value)" based on selected type
+
+### In movement
+
+- [ ] Select type "In", enter quantity 20, submit → success
+- [ ] Panel header updates to show new current stock (e.g. "Current Stock: 30 cup")
+- [ ] Product row in table updates Stock column in-place without full page reload
+- [ ] If stock was previously low, Low Stock badge may disappear if threshold is now met
+- [ ] Quantity and optional fields are cleared; type remains "In" for quick consecutive entries
+- [ ] Movement history table gains a new row at the top with type "In" (green badge), correct quantity, previous stock, new stock
+
+### Out movement
+
+- [ ] Select type "Out", enter quantity less than current stock, submit → success
+- [ ] Panel header and table row both show reduced current stock
+- [ ] If new stock ≤ minStock (and minStock > 0), amber **Low Stock** badge appears in panel header and table row
+
+### Out movement — insufficient stock error
+
+- [ ] Select type "Out", enter quantity greater than current stock, submit → form stays open
+- [ ] Alert banner shows a friendly error message containing "Insufficient stock" or similar
+- [ ] Panel does not close; stock is unchanged; product row is unchanged
+- [ ] Page does not crash
+
+### Adjustment movement
+
+- [ ] Select type "Adjustment", enter value 5, submit → success
+- [ ] Panel header shows "Current Stock: 5 {unit}" regardless of what stock was before
+- [ ] Table row Stock column shows 5
+- [ ] History row shows type "Adjustment" (blue badge), previousStock = old value, newStock = 5
+- [ ] Submitting Adjustment with value 0 → success, stock set to 0
+
+### Movement history
+
+- [ ] After submitting a movement, history table refreshes automatically (no page reload needed)
+- [ ] History shows latest movement first
+- [ ] Each row has columns: Type (badge), Qty, Before, After, Reason, Date
+- [ ] In movements show green badge, Out movements show red badge, Adjustment shows blue badge
+- [ ] Reason column shows "—" when no reason was provided
+- [ ] Date column is formatted (e.g. "6/23/2026, 10:30:00 AM")
+
+### Stock summary
+
+- [ ] After submitting any movement, the Stock Summary section updates automatically
+- [ ] **Total In** (green) shows the sum of all In movement quantities for this product
+- [ ] **Total Out** (red) shows the sum of all Out movement quantities
+- [ ] **Adjustments** shows the count of Adjustment movements
+- [ ] **Last movement** date updates to reflect the latest movement
+
+### Panel / form interaction
+
+- [ ] Clicking **Edit** on a product row while Stock panel is open → closes Stock panel, opens Edit form
+- [ ] Clicking **Stock** on a product row while Edit form is open → closes Edit form, opens Stock panel
+- [ ] Clicking **Add Product** while Stock panel is open → Stock panel closes, Add Product form opens
+- [ ] Clicking **Close** on the Stock panel → panel disappears, row highlight removed; product list remains
+
+### No regressions
+
+- [ ] All existing product list actions (Add, Edit, Toggle) still work after using the stock panel
+- [ ] Payments page (`/payments`) still loads and functions normally
+- [ ] Appointments page (`/appointments`) still loads and functions normally
+- [ ] Dashboard still loads
+- [ ] Login / logout unaffected
+

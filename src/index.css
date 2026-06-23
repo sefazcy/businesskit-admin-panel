@@ -588,6 +588,11 @@ a.nav-link:hover {
   color: #991b1b;
 }
 
+.btn-xs.stock {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 /* ─── Inline status select ───────────────────────────────────────── */
 
 .status-select {
