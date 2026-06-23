@@ -1950,3 +1950,69 @@ No backend changes were required.
 - [ ] Dashboard still loads
 - [ ] Login / logout unaffected
 
+---
+
+## Dashboard Inventory Widgets (v7.4)
+
+### Build
+
+- [ ] `npm run build` completes with 0 TypeScript errors and 0 Vite warnings
+
+### Dashboard opens and existing sections intact
+
+- [ ] Navigating to `/dashboard` loads successfully with no console errors
+- [ ] Welcome message with user's name still appears
+- [ ] **Backend** card still shows Connected / Offline
+- [ ] Appointment stat cards (Today, Pending, Upcoming 7 Days) still render
+- [ ] Unread Messages, Active Staff, Active Services, Published Posts, Gallery Items, Settings cards still render
+- [ ] **Payment Summary** section with range selector (All time / Today / Last 7 days / This month / Custom) still works
+- [ ] **Upcoming Appointments** section still renders
+
+### Inventory section — loading state
+
+- [ ] While inventory data loads, the Inventory section shows "Loading…" text
+- [ ] After data loads, loading text is replaced by the widgets
+
+### Inventory stats cards
+
+- [ ] **Total Products** card shows the correct count of all products
+- [ ] **Active Products** card shows the correct count of active products; count is green when > 0
+- [ ] **Low Stock** card shows the count of products where `isLowStock` is true; count is amber when > 0; shows 0 (no amber) when nothing is low stock
+- [ ] All three inventory cards are clickable links that navigate to `/products`
+
+### Low Stock Products list
+
+- [ ] If no products are low stock: the "Low Stock Products" sub-table does **not** appear (hidden when count is 0)
+- [ ] If low stock products exist: a "LOW STOCK PRODUCTS" label and table appear below the stat cards
+- [ ] Table columns: Product, Stock (amber bold), Min, Unit
+- [ ] SKU is shown in muted grey beside the product name when the product has one
+- [ ] At most 5 products are shown in the list
+
+### Recent Stock Movements list
+
+- [ ] "RECENT STOCK MOVEMENTS" label appears below the low-stock table (or below the stat cards if no low stock)
+- [ ] If no movements exist: "No movements recorded yet." message shown
+- [ ] If movements exist: table with columns Product, Type, Qty, Before → After, Date
+- [ ] Type column shows a colored badge: green for **In**, red for **Out**, blue for **Adjustment**
+- [ ] Before → After column shows e.g. "10 → 20" with the new stock value bold
+- [ ] Date column shows a short locale date (e.g. "6/23/2026")
+- [ ] SKU shown in muted grey beside product name when present
+- [ ] At most 5 movements shown (latest first)
+
+### Inventory section — "Manage inventory" link
+
+- [ ] **Manage inventory** button (outline style, top-right of Inventory section header) navigates to `/products`
+
+### Inventory section — error state
+
+- [ ] If backend is offline (or products/movements endpoints fail), Inventory section shows "Inventory data unavailable. Check that the backend is running." instead of widgets
+- [ ] The rest of the dashboard (payments, appointments, stat cards) still renders normally — inventory error is isolated
+
+### No regressions
+
+- [ ] `/products` page still opens and product list loads
+- [ ] Stock panel (Move Stock button) still works on Products page
+- [ ] Payment Summary section on dashboard still works
+- [ ] Appointments page still loads
+- [ ] Login / logout unaffected
+

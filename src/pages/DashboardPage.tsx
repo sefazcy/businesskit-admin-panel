@@ -5,6 +5,10 @@ import { fetchDashboardData } from '../api/dashboardApi';
 import type { DashboardData } from '../api/dashboardApi';
 import { getPaymentSummary } from '../api/paymentsApi';
 import type { PaymentSummaryStats } from '../types/payment';
+import { getProducts } from '../api/productsApi';
+import type { Product } from '../types/product';
+import { getStockMovements } from '../api/stockMovementsApi';
+import type { StockMovement } from '../types/stockMovement';
 
 type RangeKey = 'all' | 'today' | 'week' | 'month' | 'custom';
 
@@ -73,10 +77,30 @@ export default function DashboardPage() {
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
 
+  const [invProducts, setInvProducts] = useState<Product[]>([]);
+  const [invMovements, setInvMovements] = useState<StockMovement[]>([]);
+  const [invLoading, setInvLoading] = useState(true);
+  const [invError, setInvError] = useState(false);
+
   useEffect(() => {
     fetchDashboardData()
       .then(setData)
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    setInvLoading(true);
+    setInvError(false);
+    Promise.all([
+      getProducts({ take: 200 }),
+      getStockMovements({ take: 5 }),
+    ])
+      .then(([{ data: products }, { data: movements }]) => {
+        setInvProducts(products);
+        setInvMovements(movements);
+      })
+      .catch(() => setInvError(true))
+      .finally(() => setInvLoading(false));
   }, []);
 
   const fetchSummary = (fromDate?: string, toDate?: string) => {
@@ -352,6 +376,141 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+        )}
+      </div>
+
+      <div className="dashboard-section">
+        <div className="dashboard-section-header">
+          <h3>Inventory</h3>
+          <Link
+            to="/products"
+            className="btn-outline"
+            style={{ fontSize: '0.8125rem', padding: '0.3rem 0.75rem' }}
+          >
+            Manage inventory
+          </Link>
+        </div>
+
+        {invLoading ? (
+          <div style={{ color: '#9ca3af', fontSize: '0.875rem', padding: '0.5rem 0' }}>Loading…</div>
+        ) : invError ? (
+          <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '0.5rem 0' }}>
+            Inventory data unavailable. Check that the backend is running.
+          </p>
+        ) : (
+          <>
+            {/* Stats cards */}
+            <div className="dashboard-cards" style={{ marginTop: '0.5rem', marginBottom: '1rem' }}>
+              <Link to="/products" className="card-link">
+                <div className="card">
+                  <div className="card-title">Total Products</div>
+                  <div className="card-stat">{invProducts.length}</div>
+                </div>
+              </Link>
+              <Link to="/products" className="card-link">
+                <div className="card">
+                  <div className="card-title">Active Products</div>
+                  <div className={`card-stat${invProducts.filter(p => p.isActive).length > 0 ? ' card-active' : ''}`}>
+                    {invProducts.filter(p => p.isActive).length}
+                  </div>
+                </div>
+              </Link>
+              <Link to="/products" className="card-link">
+                <div className="card">
+                  <div className="card-title">Low Stock</div>
+                  <div className={`card-stat${invProducts.filter(p => p.isLowStock).length > 0 ? ' stat-pending' : ''}`}>
+                    {invProducts.filter(p => p.isLowStock).length}
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Low stock product list */}
+            {invProducts.filter(p => p.isLowStock).length > 0 && (
+              <div style={{ marginBottom: '1.25rem' }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
+                  Low Stock Products
+                </div>
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Stock</th>
+                        <th>Min</th>
+                        <th>Unit</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invProducts.filter(p => p.isLowStock).slice(0, 5).map(p => (
+                        <tr key={p.id}>
+                          <td>
+                            {p.name}
+                            {p.sku && (
+                              <span style={{ color: '#94a3b8', marginLeft: '0.4rem', fontSize: '0.8rem' }}>
+                                {p.sku}
+                              </span>
+                            )}
+                          </td>
+                          <td><strong style={{ color: '#92400e' }}>{p.currentStock}</strong></td>
+                          <td style={{ color: '#64748b' }}>{p.minStock}</td>
+                          <td style={{ color: '#64748b' }}>{p.unit}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Recent stock movements */}
+            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.5rem' }}>
+              Recent Stock Movements
+            </div>
+            {invMovements.length === 0 ? (
+              <div style={{ color: '#94a3b8', fontSize: '0.875rem' }}>No movements recorded yet.</div>
+            ) : (
+              <div className="table-container">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Type</th>
+                      <th>Qty</th>
+                      <th>Before → After</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {invMovements.map(sm => (
+                      <tr key={sm.id}>
+                        <td>
+                          {sm.productName}
+                          {sm.productSku && (
+                            <span style={{ color: '#94a3b8', marginLeft: '0.4rem', fontSize: '0.8rem' }}>
+                              {sm.productSku}
+                            </span>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`status-badge ${sm.type === 'In' ? 'status-confirmed' : sm.type === 'Out' ? 'status-cancelled' : 'status-completed'}`}>
+                            {sm.type}
+                          </span>
+                        </td>
+                        <td>{sm.quantity}</td>
+                        <td style={{ color: '#64748b', whiteSpace: 'nowrap' }}>
+                          {sm.previousStock} → <strong style={{ color: '#1e293b' }}>{sm.newStock}</strong>
+                        </td>
+                        <td style={{ color: '#64748b', whiteSpace: 'nowrap' }}>
+                          {new Date(sm.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
