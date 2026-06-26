@@ -255,7 +255,7 @@ export default function DashboardPage() {
               onChange={e => setCustomTo(e.target.value)}
               style={{ fontSize: '0.8rem', padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid #d1d5db' }}
             />
-            <button className="btn-xs" onClick={applyCustomRange}>Apply</button>
+            <button className="btn-xs edit" onClick={applyCustomRange}>Apply</button>
           </div>
         )}
 

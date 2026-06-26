@@ -2016,3 +2016,84 @@ No backend changes were required.
 - [ ] Appointments page still loads
 - [ ] Login / logout unaffected
 
+---
+
+## v7.5 — Inventory Final Polish and Readiness
+
+> Final quality, safety, and readiness pass for the complete Product / Inventory module.
+> Run after v7.5 tag against a live backend at `http://localhost:5299` and admin panel at `http://localhost:5173`.
+
+### Build check
+
+- [ ] `npm run build` → exits 0, no TypeScript errors, no Vite errors
+
+### Product management smoke checks
+
+- [ ] Navigate to `/products` — page loads, product table renders (or empty state if no products)
+- [ ] **Add Product** opens the create form with all fields: Name, SKU, Category, Unit, Current Stock, Min Stock, Cost Price, Sale Price, Notes, Active checkbox
+- [ ] Submitting with no Name → browser validation prevents submit
+- [ ] Submitting with a duplicate SKU → conflict error shown inline (e.g. "A product with SKU '...' already exists.")
+- [ ] Valid create → form closes, new product appears in table
+- [ ] **Edit** button pre-fills form with existing product data
+- [ ] Editing and saving → table row updates in place
+- [ ] **Deactivate** button → status badge changes to Inactive in the same row without page reload
+- [ ] **Activate** button (on inactive row) → status badge changes to Active
+- [ ] Low Stock badge appears in "Stock Level" column when `currentStock <= minStock` and `minStock > 0`
+- [ ] "OK" badge appears in "Stock Level" column for healthy stock
+- [ ] Search filter narrows the list by name/SKU/category
+- [ ] Category dropdown lists categories from the backend
+- [ ] Status filter (Active / Inactive / All) works
+- [ ] Low Stock Only checkbox filters to low-stock rows only
+- [ ] Clear button removes all active filters
+
+### Stock movement smoke checks
+
+- [ ] **Stock** button (purple) opens the Move Stock panel for that product
+- [ ] Panel header shows product name, current stock + unit, min stock, low stock badge (if applicable), SKU (if set)
+- [ ] Type dropdown options: "In — add to stock", "Out — remove from stock", "Adjustment — set to value"
+- [ ] Quantity label changes to "New Stock Value *" when Adjustment is selected
+- [ ] Adjustment hint text appears below form when Adjustment is selected
+- [ ] **In movement**: enter quantity → submit → current stock in panel header increases, table row stock updates
+- [ ] **Out movement** (within stock): stock decreases correctly in panel and table row
+- [ ] **Out movement** (exceeds stock): error message appears inline — "Insufficient stock…" — stock unchanged
+- [ ] **Adjustment**: enter `0` → stock set to 0, no error
+- [ ] **Adjustment**: enter positive value → stock set to that value exactly
+- [ ] After successful movement: quantity/reason/notes fields clear; type is preserved for quick repeat entry
+- [ ] Movement history table updates immediately after each movement (Type, Qty, Before, After, Reason, Date)
+- [ ] Type badges: green **In**, red **Out**, blue **Adjustment**
+- [ ] Stock summary (Total In, Total Out, Adjustments, Last movement) updates after each movement
+- [ ] **Close** button dismisses the stock panel
+- [ ] Opening stock panel for a different product while one is open replaces the panel
+
+### Dashboard inventory smoke checks
+
+- [ ] Dashboard `/dashboard` loads with Inventory section visible
+- [ ] **Total Products** card shows correct count
+- [ ] **Active Products** card shows count of active products (green when > 0)
+- [ ] **Low Stock** card shows count (amber/orange when > 0, plain when 0)
+- [ ] All three inventory stat cards link to `/products` when clicked
+- [ ] Low Stock Products table appears when there are low-stock products (max 5 rows); hidden when none
+- [ ] Recent Stock Movements table shows up to 5 most recent movements
+- [ ] Dashboard Apply button (custom date range) has visible blue styling (fixed in v7.5)
+- [ ] **Manage inventory** link in Inventory section header navigates to `/products`
+- [ ] If backend returns error for inventory data: "Inventory data unavailable…" message shown; rest of dashboard unaffected
+
+### No regressions
+
+- [ ] Login / logout still works
+- [ ] Payment Summary section (including Apply button for custom range) still works
+- [ ] Appointments page still loads
+- [ ] Customers, Staff, Services pages unaffected
+- [ ] Blog, Gallery, Messages pages unaffected
+
+### Known limitations (not bugs)
+
+- No inventory export / CSV download yet
+- No automatic stock deduction when an appointment is completed or paid yet
+- Product images not supported yet
+- No supplier / vendor module yet
+- No barcode / SKU scanning yet
+- No multi-warehouse / location support yet
+- Products page loads up to 50 products per fetch (backend default); no infinite scroll yet
+- Movement history in the stock panel shows up to 500 movements per product (server-side cap); no client-side pagination
+
