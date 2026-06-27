@@ -17,6 +17,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import PaymentsPage from './pages/PaymentsPage';
 import PaymentDetailPage from './pages/PaymentDetailPage';
 import ProductsPage from './pages/ProductsPage';
+import ApartmentsPage from './pages/ApartmentsPage';
 
 export default function App() {
   return (
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="payments" element={<PaymentsPage />} />
             <Route path="payments/:id" element={<PaymentDetailPage />} />
             <Route path="products" element={<ProductsPage />} />
+            <Route path="apartments" element={<ApartmentsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />

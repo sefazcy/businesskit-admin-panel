@@ -2097,3 +2097,149 @@ No backend changes were required.
 - Products page loads up to 50 products per fetch (backend default); no infinite scroll yet
 - Movement history in the stock panel shows up to 500 movements per product (server-side cap); no client-side pagination
 
+---
+
+## v8.1 — Apartment Management UI
+
+> Run against backend v8.0 at `http://localhost:5299` and admin panel at `http://localhost:5173`.
+
+### Build
+
+- [ ] `npm run build` completes with zero TypeScript errors and zero Vite warnings
+
+### Navigation
+
+- [ ] Sidebar shows **Apartments** link between Products and Settings
+- [ ] Clicking **Apartments** navigates to `/apartments` and highlights the nav link with indigo left border
+- [ ] Refreshing at `/apartments` stays on the page (not redirected)
+
+### Units list — initial load
+
+- [ ] `/apartments` loads with a loading state ("Loading units…"), then shows the table or empty state
+- [ ] If no units exist: "No apartment units found." state message is shown
+- [ ] If units exist: table renders with columns ID / Block / Door No / Floor / Type / Area / Occupied / Active / Residents / Primary Resident / Actions
+- [ ] Each row shows the correct **Occupied** badge: green "Occupied" or amber "Vacant"
+- [ ] Each row shows the correct **Active** badge: green "Active" or red "Inactive"
+- [ ] Area column shows `{grossArea} m²` when set, or `—` when null
+- [ ] Primary Resident column shows the primary resident's name or `—`
+
+### Filters
+
+- [ ] **Search** input: typing text re-fetches matching units
+- [ ] **Block** input: typing a block name filters to units in that block
+- [ ] **Type** select: selecting "Apartment", "Office", "Shop", or "Other" filters the list
+- [ ] **Occupied** select: selecting "Occupied" or "Vacant" filters by occupancy
+- [ ] **Status** select: selecting "Active" or "Inactive" filters by active state
+- [ ] **Clear** button appears when any filter is active; clicking it resets all filters and reloads the full list
+- [ ] Filters can be combined (e.g. Block + Type + Status)
+
+### Create unit
+
+- [ ] **Add Unit** button is shown when the unit form is not open
+- [ ] Clicking **Add Unit** opens the form panel with title "Add Apartment Unit"
+- [ ] Form fields: Block Name *, Floor Number *, Door Number *, Unit Type * (select), Gross Area, Net Area, Notes, Occupied checkbox, Active checkbox
+- [ ] **Active** checkbox is checked by default on create
+- [ ] **Occupied** checkbox is unchecked by default on create
+- [ ] Submitting with empty **Block Name** → browser validation prevents submit
+- [ ] Submitting with empty **Floor Number** → browser validation prevents submit
+- [ ] Submitting with empty **Door Number** → browser validation prevents submit
+- [ ] Submitting a valid form → backend creates the unit, form closes, unit appears in the table
+- [ ] **Cancel** button closes the form without saving
+- [ ] Opening **Add Unit** while the Residents panel is open → Residents panel closes
+
+### Duplicate unit — 409 error
+
+- [ ] Create a unit (Block A, Floor 1, Door 1)
+- [ ] Try to create another unit with the same Block, Floor, and Door → form stays open
+- [ ] A friendly error message appears in the alert box (e.g. "Unit already exists" or similar 409 message from backend)
+- [ ] Page does not crash or navigate away
+
+### Edit unit
+
+- [ ] Clicking **Edit** on a row opens the form panel with title "Edit Apartment Unit"
+- [ ] Form is pre-filled with all the selected unit's current values
+- [ ] Unit Type select pre-selects the current type
+- [ ] Occupied and Active checkboxes reflect the current state
+- [ ] Changing fields and saving → 200 from backend, form closes, table row updates
+- [ ] **Cancel** button closes the form without saving
+- [ ] Opening **Edit** while the Residents panel is open → Residents panel closes
+
+### Toggle unit active
+
+- [ ] Clicking **Deactivate** on an active unit → row badge changes to red "Inactive" without page reload
+- [ ] Clicking **Activate** on an inactive unit → row badge changes to green "Active" without page reload
+- [ ] If toggle fails → red error banner appears above the table
+
+### Select unit — open residents panel
+
+- [ ] Clicking **Residents** on a unit row opens the Residents panel above the filters/table
+- [ ] Selected unit row is highlighted with a light purple background
+- [ ] **Residents** button on the selected row is visually distinguished (indigo fill)
+- [ ] Residents panel header shows "Residents — Block {blockName} / Door {doorNumber}"
+- [ ] If unit has no residents: "No residents for this unit yet." is shown in the panel
+- [ ] Opening **Residents** on a different row switches the panel to the new unit
+- [ ] Clicking **Residents** while the unit form is open → unit form closes, panel opens
+
+### Residents panel — empty state
+
+- [ ] With a unit selected that has no residents: "No residents for this unit yet." is shown
+- [ ] "Add Resident" button is visible in the panel header
+- [ ] "Close" button is visible
+
+### Create resident
+
+- [ ] Clicking **Add Resident** in the panel header opens the resident form inside the panel
+- [ ] Form fields: Full Name *, Phone, Email, Role * (select: Owner / Tenant / FamilyMember / Other), Move In Date, Move Out Date, Notes, Primary Resident checkbox, Active checkbox
+- [ ] **Active** checkbox is checked by default
+- [ ] **Primary Resident** checkbox is unchecked by default
+- [ ] Submitting with empty **Full Name** → browser validation prevents submit
+- [ ] Submitting a valid form → resident created, form closes, residents table updates in the panel
+- [ ] After creation: unit's **Residents** count in the units table updates (residentCount increments)
+- [ ] If created resident is primary: **Primary Resident** column in units table updates to show their name
+- [ ] **Cancel** button closes the form without saving
+
+### Invalid resident role error
+
+- [ ] Selecting a valid role from the dropdown and submitting works correctly
+- [ ] If the backend returns a 400 for an invalid role (e.g. via direct API test), the error appears in the form alert banner — the form stays open, no crash
+
+### Edit resident
+
+- [ ] Clicking **Edit** on a resident row opens the resident form inside the panel
+- [ ] Form is pre-filled with all the resident's current values
+- [ ] Role select pre-selects the current role
+- [ ] Move In / Move Out dates pre-fill correctly (YYYY-MM-DD format)
+- [ ] Primary Resident and Active checkboxes reflect current state
+- [ ] Changing fields and saving → form closes, residents table updates
+- [ ] After edit: unit residentCount and primaryResidentName in units table are refreshed
+- [ ] **Cancel** closes the form without saving
+
+### Toggle resident active
+
+- [ ] Clicking **Deactivate** on an active resident → badge changes to red "Inactive" without panel reload
+- [ ] Clicking **Activate** on an inactive resident → badge changes to green "Active" without panel reload
+- [ ] After toggle: unit's residentCount and primaryResidentName refresh in the units table
+- [ ] If toggle fails → red error banner appears inside the residents panel
+
+### Close residents panel
+
+- [ ] Clicking **Close** in the panel header → panel closes, unit row highlight removed
+- [ ] Units table and filters remain unchanged
+
+### No regressions
+
+- [ ] Products page (`/products`) still loads, create/edit/toggle/stock panel all work
+- [ ] Dashboard still loads correctly
+- [ ] Customers, Staff, Services, Appointments pages unaffected
+- [ ] Payments page unaffected
+- [ ] Sidebar, login, logout unaffected
+
+### Known limitations (v8.1)
+
+- No dues / aidat (rent/fee) tracking UI yet — planned for a future sprint
+- No maintenance requests, announcements, or document upload
+- No public portal for residents
+- No pagination — all units load in a single request
+- No bulk import of units or residents
+- residentCount is a denormalized field returned by the backend and may lag if data is modified outside the admin panel
+
