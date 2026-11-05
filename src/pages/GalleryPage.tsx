@@ -10,12 +10,11 @@ import {
   uploadImage,
 } from '../api/galleryApi';
 import { extractError } from '../utils/extractError';
-
-const BACKEND_BASE = 'http://localhost:5299';
+import { API_BASE_URL } from '../api/apiClient';
 
 function resolveImageUrl(url: string): string {
   if (!url.trim()) return '';
-  if (url.startsWith('/')) return BACKEND_BASE + url;
+  if (url.startsWith('/')) return API_BASE_URL + url;
   return url;
 }
 
